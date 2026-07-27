@@ -1,0 +1,27 @@
+# Netlify 設定 — WORD QUEST RUN
+#
+# このファイルの設定は Netlify UI の設定より優先される（file-based config wins）。
+# UI 側に旧プロジェクトの設定（build command: node tools/site.mjs / publish: _site）が
+# 残っていたためデプロイが失敗した。このリポジトリに tools/site.mjs は存在しない。
+#
+# WORD QUEST RUN は静的ファイルのみ（index.html / game.js / words.js / sw.js）で
+# ビルド工程を必要としないため、リポジトリ直下をそのまま公開する。
+
+[build]
+  # ビルド不要。UI に残った旧コマンドを打ち消すための no-op（空文字はUI設定に戻るため明示する）。
+  command = "echo 'WORD QUEST RUN is a static site - no build step required.'"
+  # リポジトリ直下をそのまま配信する
+  publish = "."
+
+# Service Worker は必ず最新を取りに行かせる。
+# 古い sw.js がキャッシュされると、次のVer更新がユーザーへ届かなくなる。
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# エントリポイントも常に最新を確認させる（中身のJSはSWとNetlifyのETagで扱う）
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
