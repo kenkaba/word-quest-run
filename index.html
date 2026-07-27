@@ -3,221 +3,265 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
-<title>WORD QUEST RUN — 3つの道を選んで走る英単語アドベンチャー</title>
-<meta name="description" content="走りながら3本の道を選ぶ英単語ランニングアドベンチャー。英単語の意味に合う道を選んで、どこまでも走り続けよう。インストール不要・スマホ最適化・オフライン対応。" />
-<meta name="theme-color" content="#120f26" />
+<title>WORD QUEST RUN — 幻想ランニングRPG</title>
+<meta name="description" content="幻想世界を駆け抜けるランニングRPG。3本の道を選んでどこまでも走る。遊んでいるうちに英単語が身につく、インストール不要・オフライン対応のスマホゲーム。" />
+<meta name="theme-color" content="#1a1230" />
 <meta name="color-scheme" content="dark" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="WORD QUEST" />
 <meta property="og:type" content="website" />
-<meta property="og:title" content="WORD QUEST RUN" />
-<meta property="og:description" content="3つの道を選んで走る、英単語ランニングアドベンチャー。あなたはどこまで走れる？" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22112%22%20fill%3D%22%23120f26%22%2F%3E%3Cpath%20d%3D%22M256%20120%20120%20420h272Z%22%20fill%3D%22none%22%20stroke%3D%22%23ffcf4d%22%20stroke-width%3D%2224%22%2F%3E%3Ctext%20x%3D%22256%22%20y%3D%22470%22%20font-size%3D%22120%22%20text-anchor%3D%22middle%22%20fill%3D%22%23ffcf4d%22%3E%E2%86%91%3C%2Ftext%3E%3C%2Fsvg%3E" />
+<meta property="og:title" content="WORD QUEST RUN — 幻想ランニングRPG" />
+<meta property="og:description" content="幻想世界を駆け抜けろ。3本の道を選んで、どこまで走れる？" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23f7c98b%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%232a1f4d%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22112%22%20fill%3D%22url(%23g)%22%2F%3E%3Ccircle%20cx%3D%22336%22%20cy%3D%22150%22%20r%3D%2246%22%20fill%3D%22%23fff3c4%22%2F%3E%3Cpath%20d%3D%22M256%20180%20120%20460h272Z%22%20fill%3D%22%236c5a92%22%2F%3E%3Cpath%20d%3D%22M256%20180%20256%20460%22%20stroke%3D%22%23ffd9a0%22%20stroke-width%3D%2210%22%2F%3E%3C%2Fsvg%3E" />
 <style>
-  :root {
-    --bg: #0a0817; --ink: #f4f1ff; --muted: #a79fd0; --accent: #ffcf4d;
-    --a: #ff5c9d; --b: #4fd6ff; --c: #ffcf4d;
-    --card: rgba(20,16,40,0.72); --line: rgba(255,255,255,0.12);
-    --safe-t: env(safe-area-inset-top); --safe-b: env(safe-area-inset-bottom);
+  :root{
+    --ink:#fff; --muted:rgba(255,255,255,.72); --faint:rgba(255,255,255,.5);
+    --gold:#ffd76a; --glass:rgba(255,255,255,.10); --line:rgba(255,255,255,.22);
+    --st:env(safe-area-inset-top); --sb:env(safe-area-inset-bottom);
   }
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
-    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
-    overflow: hidden; overscroll-behavior: none; touch-action: manipulation; user-select: none; }
-  #app { position: fixed; inset: 0; display: flex; flex-direction: column; }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:#0a0817;color:var(--ink);overflow:hidden;
+    overscroll-behavior:none;touch-action:manipulation;user-select:none;
+    font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",system-ui,sans-serif}
+  #app{position:fixed;inset:0}
+  #field{position:absolute;inset:0}
+  #stage{position:absolute;inset:0;width:100%;height:100%;display:block}
 
-  /* ── プレイ画面 ── */
-  #field { position: absolute; inset: 0; }
-  #stage { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  /* ── HUD: 距離とコンボだけ。ガラス調で世界に馴染ませる ── */
+  #hud{position:absolute;top:calc(10px + var(--st));left:0;right:0;z-index:5;
+    display:flex;align-items:flex-start;justify-content:space-between;padding:0 14px;pointer-events:none}
+  .glass{background:var(--glass);border:1px solid var(--line);border-radius:999px;
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    box-shadow:0 6px 24px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.28)}
+  #distWrap{display:flex;align-items:baseline;gap:5px;padding:7px 16px}
+  #hudDist{font-size:26px;font-weight:900;letter-spacing:-.02em;
+    text-shadow:0 2px 12px rgba(0,0,0,.55)}
+  #distWrap small{font-size:11px;color:var(--muted);font-weight:800}
+  #hudStage{position:absolute;top:calc(50px + var(--st));left:0;right:0;text-align:center;
+    font-size:10px;letter-spacing:.34em;color:rgba(255,255,255,.5);font-weight:800;pointer-events:none}
+  #right{display:flex;flex-direction:column;align-items:flex-end;gap:7px}
+  #hudLives{display:flex;gap:5px;padding:8px 12px}
+  #hudLives i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.2);display:block}
+  #hudLives i.on{background:#ff7a9c;box-shadow:0 0 10px #ff7a9c}
+  #comboWrap{display:none;align-items:baseline;gap:4px;padding:6px 14px}
+  #comboWrap.on{display:flex}
+  #hudCombo{font-size:19px;font-weight:900}
+  #comboWrap small{font-size:9px;letter-spacing:.16em;color:var(--muted);font-weight:800}
+  #comboWrap.hot #hudCombo{color:var(--gold);text-shadow:0 0 14px var(--gold)}
+  #comboWrap.rainbow #hudCombo{
+    background:linear-gradient(90deg,#ff8a8a,#ffd76a,#8affb0,#8ad6ff,#c98aff);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    animation:hue 1.4s linear infinite}
+  @keyframes hue{to{filter:hue-rotate(360deg)}}
 
-  /* HUD（端に小さく） */
-  #hud { position: absolute; top: calc(6px + var(--safe-t)); left: 8px; right: 8px;
-    display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 5; }
-  .hud-l, .hud-r { display: flex; flex-direction: column; gap: 2px; }
-  .hud-r { align-items: flex-end; }
-  #hudStage { font-size: 11px; font-weight: 800; letter-spacing: .12em; color: var(--accent); text-transform: uppercase; opacity: .95; }
-  #hudDist { font-size: 20px; font-weight: 900; line-height: 1; }
-  #hudLives { font-size: 14px; letter-spacing: 2px; color: #ff6a8a; }
-  #hudCombo { font-size: 13px; font-weight: 900; color: var(--accent); min-height: 15px; }
-  #hudCombo.hot { color: #fff; text-shadow: 0 0 10px var(--accent), 0 0 20px var(--a); animation: pulse .5s infinite alternate; }
-  @keyframes pulse { to { transform: scale(1.12); } }
+  /* ── 問題: 中央より少し上。箱に入れず、光る文字として世界に浮かべる ── */
+  #qword{position:absolute;top:19%;left:0;right:0;text-align:center;z-index:4;pointer-events:none;
+    font-size:clamp(38px,13vw,64px);font-weight:900;letter-spacing:-.01em;line-height:1;margin:0;
+    color:#fff;
+    text-shadow:0 0 26px rgba(255,235,190,.55), 0 0 60px rgba(255,200,140,.32), 0 4px 20px rgba(0,0,0,.6);
+    transition:opacity .18s, transform .18s}
+  #qword.show{animation:qin .32s cubic-bezier(.2,1.4,.4,1)}
+  @keyframes qin{from{opacity:0;transform:translateY(-14px) scale(.94)}to{opacity:1;transform:none}}
+  #qword.urgent{animation:urg .5s ease-in-out infinite}
+  @keyframes urg{50%{text-shadow:0 0 30px rgba(255,120,120,.9),0 4px 20px rgba(0,0,0,.6)}}
+  #qword.ok{color:#c9ffd8;text-shadow:0 0 34px rgba(125,255,168,.75),0 4px 20px rgba(0,0,0,.6)}
+  #qword.ng{color:#ffc3c3;text-shadow:0 0 34px rgba(255,106,106,.7),0 4px 20px rgba(0,0,0,.6)}
+  /* 残り時間: 文字の下の細い光の線 */
+  #qword::after{content:'';position:absolute;left:50%;bottom:-14px;transform:translateX(-50%) scaleX(var(--t,1));
+    width:132px;height:3px;border-radius:3px;transform-origin:center;
+    background:linear-gradient(90deg,rgba(255,215,106,0),#ffd76a,rgba(255,215,106,0));
+    transition:transform .1s linear}
 
-  /* 中央の英単語（視線の中心） */
-  #prompt { position: absolute; top: calc(9% + var(--safe-t)); left: 0; right: 0; text-align: center; z-index: 4; pointer-events: none; }
-  #qmode { font-size: 10px; font-weight: 800; letter-spacing: .18em; color: var(--muted); }
-  #qword { font-size: clamp(30px, 11vw, 52px); font-weight: 900; line-height: 1.05; margin: 2px 0 0;
-    text-shadow: 0 3px 18px rgba(0,0,0,.7), 0 0 22px rgba(79,214,255,.25); }
-  #qpron { font-size: 13px; color: var(--muted); font-family: ui-monospace, monospace; }
-  #timerWrap { width: min(66%, 300px); height: 6px; margin: 8px auto 0; border-radius: 6px; background: rgba(255,255,255,.14); overflow: hidden; }
-  #qtimer { height: 100%; width: 100%; transform-origin: left center; background: var(--accent); border-radius: 6px; }
+  /* ── シネマ演出テキスト ── */
+  #cine{position:absolute;top:44%;left:0;right:0;text-align:center;z-index:7;pointer-events:none;
+    font-size:clamp(26px,8vw,40px);font-weight:900;opacity:0;letter-spacing:.02em;
+    text-shadow:0 0 30px rgba(0,0,0,.7),0 0 60px currentColor}
+  #cine.show{animation:cinep 1.25s cubic-bezier(.15,1.3,.3,1)}
+  @keyframes cinep{0%{opacity:0;transform:scale(.6)}18%{opacity:1;transform:scale(1.06)}
+    70%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.14)}}
 
-  /* 3本の道のラベル（道の上に表示） */
-  .lane { position: absolute; top: 40%; transform: translate(-50%, -50%); z-index: 4;
-    min-width: 84px; max-width: 30vw; padding: 10px 12px; border-radius: 14px;
-    background: var(--card); border: 1.5px solid var(--line); backdrop-filter: blur(6px);
-    text-align: center; box-shadow: 0 6px 24px rgba(0,0,0,.45); transition: transform .12s, opacity .2s; }
-  .laneKey { display: block; font-size: 9px; font-weight: 800; letter-spacing: .1em; color: var(--muted); margin-bottom: 2px; }
-  .laneText { display: block; font-size: clamp(15px, 4.6vw, 20px); font-weight: 800; line-height: 1.2; }
-  .lane--correct { border-color: #7dffa8; background: rgba(40,120,70,.55); box-shadow: 0 0 26px rgba(125,255,168,.5); }
-  .lane--wrong { border-color: #ff6a6a; background: rgba(130,40,50,.55); }
-  .lane--hintflash { border-color: #7dffa8; box-shadow: 0 0 26px rgba(125,255,168,.7); }
-  .lane--blocked { filter: grayscale(1); }
-  .lane::after { content: ''; position: absolute; left: 50%; bottom: -9px; transform: translateX(-50%);
-    border: 6px solid transparent; border-top-color: var(--line); }
+  /* ── ヒント（世界観に馴染む小さな護符） ── */
+  #hints{position:absolute;left:0;right:0;bottom:calc(12px + var(--sb));z-index:5;
+    display:flex;justify-content:center;gap:12px}
+  .hint{width:60px;height:60px;border-radius:20px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:1px;cursor:pointer;position:relative;
+    background:var(--glass);border:1px solid var(--line);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  .hint .ic{font-size:21px;line-height:1}
+  .hint .lb{font-size:8px;color:var(--muted);font-weight:800;letter-spacing:.04em}
+  .hint .n{position:absolute;top:-5px;right:-4px;min-width:18px;height:18px;border-radius:9px;
+    background:var(--gold);color:#2a1c00;font-size:10px;font-weight:900;
+    display:flex;align-items:center;justify-content:center;padding:0 4px}
+  .hint.off{opacity:.3}
+  .hint:active{transform:scale(.94)}
 
-  /* バナー（突破/失敗の一言） */
-  .banner { position: absolute; top: 60%; left: 50%; transform: translate(-50%, 0) scale(.9);
-    z-index: 6; padding: 8px 16px; border-radius: 999px; font-weight: 900; font-size: 15px;
-    background: rgba(0,0,0,.55); border: 1px solid var(--line); opacity: 0; pointer-events: none; white-space: nowrap; transition: opacity .15s, transform .15s; }
-  .banner.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
-  .banner.good { color: #9dffc0; border-color: #7dffa8; }
-  .banner.bad { color: #ffb0b0; border-color: #ff6a6a; }
-  .banner.boss { color: var(--accent); border-color: var(--accent); }
+  /* 初回コーチ */
+  #coach{position:absolute;left:0;right:0;bottom:calc(92px + var(--sb));z-index:6;text-align:center;
+    opacity:0;pointer-events:none;transition:opacity .4s}
+  #coach.show{opacity:1}
+  #coach span{display:inline-block;padding:9px 18px;border-radius:999px;font-size:13px;font-weight:800;
+    background:rgba(10,8,24,.55);border:1px solid var(--line);backdrop-filter:blur(8px)}
 
-  /* 下部ヒントバー（親指の届く位置・中央の視線を邪魔しない） */
-  #hints { position: absolute; left: 0; right: 0; bottom: calc(8px + var(--safe-b));
-    display: flex; justify-content: center; gap: 10px; z-index: 5; padding: 0 10px; }
-  .hint { flex: 1; max-width: 118px; display: flex; align-items: center; justify-content: center; gap: 6px;
-    padding: 9px 6px; border-radius: 12px; background: var(--card); border: 1px solid var(--line);
-    font-size: 12px; font-weight: 800; color: var(--ink); cursor: pointer; }
-  .hint .ic { font-size: 17px; }
-  .hint .n { font-size: 11px; color: var(--accent); font-weight: 900; }
-  .hint.is-empty { opacity: .35; }
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  body.playing #title,body.playing #over{display:none}
+  /* プレイ中以外はゲームUIを完全に隠す（タイトルは世界だけを見せる） */
+  body:not(.playing) #hud,
+  body:not(.playing) #hudStage,
+  body:not(.playing) #hints,
+  body:not(.playing) #qword,
+  body:not(.playing) #cine,
+  body:not(.playing) #coach{display:none}
 
-  body.playing #title, body.playing #over { display: none; }
-
-  /* ── オーバーレイ（タイトル / 結果 / 遊び方） ── */
-  .overlay { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; text-align: center; padding: 24px;
-    padding-top: calc(24px + var(--safe-t)); padding-bottom: calc(24px + var(--safe-b));
-    background: radial-gradient(120% 90% at 50% 8%, #241d4a 0%, #0a0817 62%); }
-  .overlay.hidden { display: none; }
-  .eyebrow { font-size: 12px; font-weight: 800; letter-spacing: .28em; color: var(--accent); }
-  .logo { font-size: clamp(38px, 13vw, 66px); font-weight: 900; line-height: .92; margin: 6px 0 0; }
-  .logo .run { display: block; color: var(--accent); text-shadow: 0 0 30px rgba(255,207,77,.35); }
-  .tagline { color: var(--muted); font-size: 15px; margin: 14px 0 22px; line-height: 1.5; }
-  .best { display: inline-flex; gap: 10px; align-items: center; padding: 10px 18px; border-radius: 14px;
-    background: var(--card); border: 1px solid var(--line); margin-bottom: 18px; }
-  .best small { color: var(--muted); font-size: 12px; }
-  .best b { font-size: 22px; }
-  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    min-height: 54px; padding: 0 30px; border-radius: 16px; border: none; cursor: pointer;
-    font-size: 18px; font-weight: 900; color: #201704;
-    background: linear-gradient(180deg, #ffe08a, #ffcf4d); box-shadow: 0 8px 26px rgba(255,207,77,.35); }
-  .btn:active { transform: translateY(1px); }
-  .btn-row { display: flex; gap: 10px; margin-top: 14px; }
-  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); box-shadow: none; min-height: 46px; font-size: 14px; padding: 0 20px; }
-  .hintNote { color: var(--muted); font-size: 12px; margin-top: 16px; max-width: 320px; line-height: 1.6; }
-  .kbd { display: inline-block; min-width: 20px; padding: 1px 6px; border: 1px solid var(--line); border-radius: 6px; font-size: 11px; }
+  /* ── オーバーレイ ── */
+  .ov{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;text-align:center;padding:26px;
+    padding-top:calc(26px + var(--st));padding-bottom:calc(26px + var(--sb));
+    background:linear-gradient(180deg,rgba(10,8,23,.08) 0%,rgba(10,8,23,.34) 46%,rgba(10,8,23,.74) 100%)}
+  .ov.hidden{display:none}
+  .eyebrow{font-size:11px;font-weight:800;letter-spacing:.4em;color:var(--gold);margin-bottom:8px}
+  .logo{font-size:clamp(40px,14vw,72px);font-weight:900;line-height:.9;margin:0;letter-spacing:-.02em;
+    text-shadow:0 0 40px rgba(255,215,140,.4),0 6px 30px rgba(0,0,0,.6)}
+  .logo .r{display:block;
+    background:linear-gradient(180deg,#fff6d8,#ffd06a 60%,#ff9a5c);
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .tag{color:var(--muted);font-size:14px;margin:16px 0 24px;line-height:1.75;font-weight:600}
+  .best{display:inline-flex;align-items:baseline;gap:9px;padding:11px 22px;margin-bottom:20px}
+  .best small{font-size:11px;color:var(--muted);font-weight:800;letter-spacing:.1em}
+  .best b{font-size:25px;font-weight:900}
+  .best i{font-style:normal;font-size:12px;color:var(--muted)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;cursor:pointer;
+    min-height:58px;padding:0 38px;border-radius:999px;font-size:18px;font-weight:900;color:#2a1c00;
+    background:linear-gradient(180deg,#ffeaa8,#ffd06a);
+    box-shadow:0 10px 34px rgba(255,200,100,.36),inset 0 1px 0 rgba(255,255,255,.7)}
+  .btn:active{transform:translateY(2px)}
+  .row{display:flex;gap:10px;margin-top:14px}
+  .btn2{min-height:46px;padding:0 22px;border-radius:999px;font-size:13px;font-weight:800;
+    color:var(--ink);cursor:pointer;background:var(--glass);border:1px solid var(--line);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    display:inline-flex;align-items:center;justify-content:center}
+  .note{color:var(--faint);font-size:12px;margin-top:22px;line-height:1.8;max-width:310px}
+  .kbd{display:inline-block;min-width:22px;padding:1px 6px;border:1px solid var(--line);
+    border-radius:6px;font-size:11px}
+  #soundBtn{position:absolute;top:calc(14px + var(--st));right:14px;width:44px;height:44px;
+    border-radius:50%;padding:0;font-size:17px}
 
   /* 結果 */
-  #over .logo { font-size: clamp(28px, 9vw, 44px); }
-  .result-row { display: flex; gap: 12px; margin: 10px 0 6px; }
-  .result-row .cell { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 18px; min-width: 108px; }
-  .result-row .cell small { display: block; color: var(--muted); font-size: 11px; }
-  .result-row .cell b { font-size: 24px; }
-  #ovNew { color: var(--accent); font-weight: 900; margin: 4px 0; }
-  .missed-wrap { width: 100%; max-width: 360px; margin: 12px 0; }
-  .missed-title { font-size: 12px; color: var(--muted); text-align: left; margin: 0 0 6px; letter-spacing: .08em; }
-  #ovMissed { display: flex; flex-wrap: wrap; gap: 6px; max-height: 150px; overflow-y: auto; justify-content: flex-start; }
-  .miss { display: flex; flex-direction: column; align-items: flex-start; background: var(--card); border: 1px solid var(--line);
-    border-radius: 10px; padding: 6px 10px; }
-  .miss b { font-size: 14px; } .miss span { font-size: 11px; color: var(--muted); }
-  .miss-empty { color: #9dffc0; font-weight: 800; }
+  #over .logo{font-size:clamp(26px,8vw,38px)}
+  #ovNew{color:var(--gold);font-weight:900;font-size:15px;margin:10px 0 2px;
+    text-shadow:0 0 20px rgba(255,215,106,.6)}
+  .stats{display:flex;gap:10px;margin:14px 0 4px}
+  .stat{padding:13px 16px;border-radius:20px;min-width:96px;
+    background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(10px)}
+  .stat small{display:block;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.1em;margin-bottom:3px}
+  .stat b{font-size:26px;font-weight:900}
+  .stat b em{font-style:normal;font-size:12px;color:var(--muted);margin-left:2px}
+  .reached{font-size:12px;color:var(--muted);margin:12px 0 0;font-weight:700}
+  .reached b{color:var(--gold)}
+  .mwrap{width:100%;max-width:340px;margin:14px 0 4px}
+  .mtitle{font-size:11px;color:var(--faint);text-align:left;margin:0 0 7px;letter-spacing:.1em;font-weight:800}
+  #ovMissed{display:flex;flex-wrap:wrap;gap:6px;max-height:132px;overflow-y:auto}
+  .mw{display:flex;flex-direction:column;align-items:flex-start;padding:6px 11px;border-radius:12px;
+    background:var(--glass);border:1px solid var(--line)}
+  .mw b{font-size:13px} .mw span{font-size:10px;color:var(--muted)}
+  .perfect{color:#9dffc0;font-weight:900;font-size:14px}
 
   /* 遊び方 */
-  #howto { background: rgba(6,4,16,.9); }
-  #howto .panel { max-width: 360px; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 22px; text-align: left; }
-  #howto h3 { margin: 0 0 12px; }
-  #howto ol { margin: 0; padding-left: 20px; line-height: 1.7; font-size: 14px; color: var(--ink); }
-  #howto .mini { color: var(--muted); font-size: 12px; margin-top: 12px; line-height: 1.6; }
+  #howto{background:rgba(6,4,16,.92);z-index:30}
+  #howto .panel{max-width:340px;width:100%;padding:26px;border-radius:26px;text-align:left;
+    background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(16px)}
+  #howto h3{margin:0 0 6px;font-size:19px}
+  #howto p.sub{margin:0 0 16px;color:var(--muted);font-size:12px;font-weight:700}
+  .steps{display:flex;flex-direction:column;gap:13px;margin-bottom:18px}
+  .step{display:flex;gap:12px;align-items:flex-start}
+  .step .no{flex:none;width:24px;height:24px;border-radius:50%;background:var(--gold);color:#2a1c00;
+    font-size:12px;font-weight:900;display:flex;align-items:center;justify-content:center}
+  .step p{margin:0;font-size:13.5px;line-height:1.55;font-weight:600}
+  .step p b{color:var(--gold)}
+  #howto .mini{color:var(--faint);font-size:11.5px;line-height:1.75;margin:0 0 18px}
 </style>
 </head>
 <body>
 <div id="app">
-  <!-- プレイ画面 -->
   <div id="field">
     <canvas id="stage"></canvas>
 
     <div id="hud">
-      <div class="hud-l">
-        <span id="hudStage">古代遺跡</span>
-        <span id="hudDist">0 m</span>
-      </div>
-      <div class="hud-r">
-        <span id="hudLives">❤❤❤</span>
-        <span id="hudCombo"></span>
+      <div id="distWrap" class="glass"><span id="hudDist">0</span><small>m</small></div>
+      <div id="right">
+        <div id="hudLives" class="glass"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+        <div id="comboWrap" class="glass"><span id="hudCombo">0</span><small>COMBO</small></div>
       </div>
     </div>
+    <div id="hudStage">暁の浮遊遺跡</div>
 
-    <div id="prompt">
-      <div id="qmode">EASY</div>
-      <h1 id="qword">—</h1>
-      <div id="qpron"></div>
-      <div id="timerWrap"><div id="qtimer"></div></div>
-    </div>
+    <h1 id="qword">—</h1>
+    <div id="cine" class="cine"></div>
 
-    <div class="lane" id="lane0"><span class="laneKey">◀ 左</span><span class="laneText">—</span></div>
-    <div class="lane" id="lane1"><span class="laneKey">▲ 中央</span><span class="laneText">—</span></div>
-    <div class="lane" id="lane2"><span class="laneKey">右 ▶</span><span class="laneText">—</span></div>
-
-    <div id="banner" class="banner"></div>
+    <div id="coach" class="coach"><span>意味に合う<b>道</b>をタップ（左・中央・右）</span></div>
 
     <div id="hints">
-      <div class="hint" id="hintScroll"><span class="ic">📜</span>巻物<span class="n" id="hintScrollN">3</span></div>
-      <div class="hint" id="hintSand"><span class="ic">⏳</span>時の砂<span class="n" id="hintSandN">3</span></div>
-      <div class="hint" id="hintEye"><span class="ic">👁</span>魔法の目<span class="n" id="hintEyeN">3</span></div>
+      <div class="hint" id="hintScroll" role="button" aria-label="巻物: 誤った道を1本封鎖">
+        <span class="ic">📜</span><span class="lb">巻物</span><span class="n" id="hintScrollN">3</span></div>
+      <div class="hint" id="hintSand" role="button" aria-label="時の砂: 時間の流れを遅くする">
+        <span class="ic">⏳</span><span class="lb">時の砂</span><span class="n" id="hintSandN">3</span></div>
+      <div class="hint" id="hintEye" role="button" aria-label="魔法の目: 正しい道を光らせる">
+        <span class="ic">🔮</span><span class="lb">魔法の目</span><span class="n" id="hintEyeN">3</span></div>
     </div>
+
+    <div id="liveRegion" class="sr" aria-live="polite"></div>
   </div>
 
   <!-- タイトル -->
-  <div id="title" class="overlay">
-    <div class="eyebrow">ENGLISH WORD ADVENTURE</div>
-    <h1 class="logo">WORD QUEST<span class="run">RUN</span></h1>
-    <p class="tagline">走りながら、意味に合う<b>3つの道</b>を選ぶ。<br>どこまで走れるか、挑戦しよう。</p>
-    <div class="best"><span>🏆</span><small>自己ベスト</small><b id="titleBest">0 m</b></div>
-    <button class="btn" id="startBtn">▶ 冒険をはじめる</button>
-    <div class="btn-row">
-      <button class="btn ghost" id="howtoBtn">遊び方</button>
-      <button class="btn ghost" id="soundBtn">🔊 音あり</button>
-    </div>
-    <p class="hintNote">道を <b>タップ</b>（左・中央・右）か <b>スワイプ</b>（←・↑・→）で選ぶ。<br>PCは <span class="kbd">←</span> <span class="kbd">↑</span> <span class="kbd">→</span> でも操作できます。</p>
+  <div id="title" class="ov">
+    <button id="soundBtn" class="btn2" aria-label="音を消す">🔊</button>
+    <div class="eyebrow">FANTASY RUNNING RPG</div>
+    <h1 class="logo">WORD QUEST<span class="r">RUN</span></h1>
+    <p class="tag">幻想世界を駆け抜けろ。<br>意味に合う<b>道</b>を選んで、どこまでも遠くへ。</p>
+    <div class="best glass"><small>BEST</small><b id="titleBest">0</b><i>m</i></div>
+    <button class="btn" id="startBtn">冒険をはじめる</button>
+    <div class="row"><button class="btn2" id="howtoBtn">遊び方</button></div>
+    <p class="note">道を<b>タップ</b>（左・中央・右）／<b>スワイプ</b>（← ↑ →）<br>
+      PCは <span class="kbd">←</span> <span class="kbd">↑</span> <span class="kbd">→</span></p>
   </div>
 
   <!-- 結果 -->
-  <div id="over" class="overlay hidden">
+  <div id="over" class="ov hidden">
     <div class="eyebrow">RESULT</div>
-    <h1 class="logo">冒険おわり</h1>
-    <div id="ovNew" style="display:none">🎉 自己ベスト更新！</div>
-    <div class="result-row">
-      <div class="cell"><small>走った距離</small><b id="ovDist">0 m</b></div>
-      <div class="cell"><small>自己ベスト</small><b id="ovBest">0 m</b></div>
-      <div class="cell"><small>最大コンボ</small><b id="ovCombo">0</b></div>
+    <h1 class="logo">冒険のきろく</h1>
+    <div id="ovNew" style="display:none">✦ 自己ベスト更新 ✦</div>
+    <div class="stats">
+      <div class="stat"><small>DISTANCE</small><b id="ovDist">0</b><em>m</em></div>
+      <div class="stat"><small>BEST</small><b id="ovBest">0</b><em>m</em></div>
+      <div class="stat"><small>MAX COMBO</small><b id="ovCombo">0</b></div>
     </div>
-    <div class="missed-wrap">
-      <p class="missed-title">🔁 まちがえた単語（次回また出ます）</p>
+    <p class="reached">到達した地: <b id="ovStage">—</b></p>
+    <div class="mwrap">
+      <p class="mtitle">おぼえかけの言葉（また出会う）</p>
       <div id="ovMissed"></div>
     </div>
-    <button class="btn" id="retryBtn">▶ もう一度走る</button>
-    <div class="btn-row"><button class="btn ghost" id="homeBtn">タイトルへ</button></div>
+    <button class="btn" id="retryBtn">もう一度走る</button>
+    <div class="row">
+      <button class="btn2" id="shareBtn">記録を共有</button>
+      <button class="btn2" id="homeBtn">タイトルへ</button>
+    </div>
   </div>
 
   <!-- 遊び方 -->
-  <div id="howto" class="overlay hidden">
+  <div id="howto" class="ov hidden">
     <div class="panel">
       <h3>遊び方</h3>
-      <ol>
-        <li>画面中央に<b>英単語</b>が出ます。</li>
-        <li>3本の道に<b>日本語の意味</b>が1つずつ。</li>
-        <li>正しい意味の道を選ぶ（左・中央・右）。</li>
-        <li>正解ならそのまま走り抜け、距離がのびる。</li>
-        <li>まちがえるとライフが1つ減る。0でおわり。</li>
-        <li>連続正解でスピードアップ！どこまで走れる？</li>
-      </ol>
-      <p class="mini">📜 巻物=誤答を1本封鎖 / ⏳ 時の砂=分岐をゆっくり / 👁 魔法の目=正解を一瞬光らせる<br>一定距離で<b>ボス</b>が出現。3問正解で撃破！</p>
-      <button class="btn" id="howtoClose" style="margin-top:16px">とじる</button>
+      <p class="sub">3秒でわかる。あとは走るだけ。</p>
+      <div class="steps">
+        <div class="step"><span class="no">1</span><p>空に<b>言葉</b>が浮かぶ。</p></div>
+        <div class="step"><span class="no">2</span><p>3本の道に<b>意味</b>がひとつずつ。</p></div>
+        <div class="step"><span class="no">3</span><p>正しい道を<b>タップ</b>して駆け抜ける。</p></div>
+        <div class="step"><span class="no">4</span><p>連続で当てるほど<b>速く</b>、景色が変わる。</p></div>
+      </div>
+      <p class="mini">📜 巻物 … 誤った道を1本封鎖<br>⏳ 時の砂 … 時間の流れを遅く<br>🔮 魔法の目 … 正しい道が一瞬光る<br>
+        一定の距離で<b>魔獣</b>が現れる。3問当てれば突破。</p>
+      <button class="btn" id="howtoClose" style="width:100%">とじる</button>
     </div>
   </div>
 </div>
@@ -225,11 +269,8 @@
 <script src="words.js"></script>
 <script src="game.js"></script>
 <script>
-  /* Service Worker（オフライン対応 / バージョン更新でキャッシュ刷新） */
   if ('serviceWorker' in navigator) {
-    window.addEventListener('load', function () {
-      navigator.serviceWorker.register('sw.js').catch(function () {});
-    });
+    window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
   }
 </script>
 </body>
