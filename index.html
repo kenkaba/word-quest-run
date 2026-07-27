@@ -2,1370 +2,235 @@
 <html lang="ja">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover" />
-<title>WORD QUEST RUN — 英単語で進む、終わらない冒険</title>
-<meta name="description" content="制限時間内に英単語の意味を4択で当てて、どこまでも走り続けるスマホ向け英単語ゲーム。インストール不要、オフラインでも遊べます。" />
-<meta name="theme-color" content="#070b18" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<title>WORD QUEST RUN — 3つの道を選んで走る英単語アドベンチャー</title>
+<meta name="description" content="走りながら3本の道を選ぶ英単語ランニングアドベンチャー。英単語の意味に合う道を選んで、どこまでも走り続けよう。インストール不要・スマホ最適化・オフライン対応。" />
+<meta name="theme-color" content="#120f26" />
 <meta name="color-scheme" content="dark" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="WORD QUEST" />
-
 <meta property="og:type" content="website" />
 <meta property="og:title" content="WORD QUEST RUN" />
-<meta property="og:description" content="英単語4択 × エンドレスラン。あなたはどこまで走れる？" />
-
-<meta name="twitter:card" content="summary_large_image" />
-
-<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20512%20512%22%20role%3D%22img%22%20aria-label%3D%22WORD%20QUEST%20RUN%22%3E%0A%20%20%3Cdefs%3E%0A%20%20%20%20%3ClinearGradient%20id%3D%22bg%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%0A%20%20%20%20%20%20%3Cstop%20offset%3D%220%22%20stop-color%3D%22%232c3f70%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23070b18%22%2F%3E%0A%20%20%20%20%3C%2FlinearGradient%3E%0A%20%20%3C%2Fdefs%3E%0A%20%20%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22112%22%20fill%3D%22url(%23bg)%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M102%20122h308v146L256%20434%20102%20268Z%22%20fill%3D%22%23ffcf4d%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M124%20146h264v122L256%20402%20124%20268Z%22%20fill%3D%22%23111a33%22%2F%3E%0A%20%20%3Ctext%20x%3D%22256%22%20y%3D%22286%22%20text-anchor%3D%22middle%22%20font-family%3D%22Trebuchet%20MS%2C%20Helvetica%2C%20Arial%2C%20sans-serif%22%0A%20%20%20%20%20%20%20%20font-size%3D%22180%22%20font-weight%3D%22700%22%20fill%3D%22%23ffcf4d%22%3EW%3C%2Ftext%3E%0A%20%20%3Ccircle%20cx%3D%22205%22%20cy%3D%22340%22%20r%3D%2211%22%20fill%3D%22%2394a1c4%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%22256%22%20cy%3D%22340%22%20r%3D%2211%22%20fill%3D%22%2394a1c4%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%22307%22%20cy%3D%22340%22%20r%3D%2211%22%20fill%3D%22%23ffcf4d%22%2F%3E%0A%3C%2Fsvg%3E%0A" type="image/svg+xml" />
-<link rel="apple-touch-icon" href="data:image/png;base64,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" />
-
+<meta property="og:description" content="3つの道を選んで走る、英単語ランニングアドベンチャー。あなたはどこまで走れる？" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20512%20512%22%3E%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22112%22%20fill%3D%22%23120f26%22%2F%3E%3Cpath%20d%3D%22M256%20120%20120%20420h272Z%22%20fill%3D%22none%22%20stroke%3D%22%23ffcf4d%22%20stroke-width%3D%2224%22%2F%3E%3Ctext%20x%3D%22256%22%20y%3D%22470%22%20font-size%3D%22120%22%20text-anchor%3D%22middle%22%20fill%3D%22%23ffcf4d%22%3E%E2%86%91%3C%2Ftext%3E%3C%2Fsvg%3E" />
 <style>
-/* ==========================================================================
-   WORD QUEST RUN — styles
-   1. tokens  2. base  3. buttons  4. title  5. game  6. stage & fx
-   7. card & choices  8. items  9. result  10. overlays  11. responsive
-   ========================================================================== */
+  :root {
+    --bg: #0a0817; --ink: #f4f1ff; --muted: #a79fd0; --accent: #ffcf4d;
+    --a: #ff5c9d; --b: #4fd6ff; --c: #ffcf4d;
+    --card: rgba(20,16,40,0.72); --line: rgba(255,255,255,0.12);
+    --safe-t: env(safe-area-inset-top); --safe-b: env(safe-area-inset-bottom);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+    overflow: hidden; overscroll-behavior: none; touch-action: manipulation; user-select: none; }
+  #app { position: fixed; inset: 0; display: flex; flex-direction: column; }
 
-/* ── 1. tokens ─────────────────────────────────────────────────────────── */
-:root{
-  --abyss:#070b18;
-  --slab:#141d33;
-  --slab-2:#1d2a49;
-  --edge:#33436d;
-  --edge-soft:#26325288;
-  --ink:#f2f5ff;
-  --dim:#94a1c4;
-  --gold:#ffcf4d;
-  --gold-deep:#a86a12;
-  --jade:#5be59a;
-  --crimson:#ff5f6d;
-  --azure:#5aa9ff;
+  /* ── プレイ画面 ── */
+  #field { position: absolute; inset: 0; }
+  #stage { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
-  --sky-1:#3a5f96;
-  --sky-2:#8fb7d8;
+  /* HUD（端に小さく） */
+  #hud { position: absolute; top: calc(6px + var(--safe-t)); left: 8px; right: 8px;
+    display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 5; }
+  .hud-l, .hud-r { display: flex; flex-direction: column; gap: 2px; }
+  .hud-r { align-items: flex-end; }
+  #hudStage { font-size: 11px; font-weight: 800; letter-spacing: .12em; color: var(--accent); text-transform: uppercase; opacity: .95; }
+  #hudDist { font-size: 20px; font-weight: 900; line-height: 1; }
+  #hudLives { font-size: 14px; letter-spacing: 2px; color: #ff6a8a; }
+  #hudCombo { font-size: 13px; font-weight: 900; color: var(--accent); min-height: 15px; }
+  #hudCombo.hot { color: #fff; text-shadow: 0 0 10px var(--accent), 0 0 20px var(--a); animation: pulse .5s infinite alternate; }
+  @keyframes pulse { to { transform: scale(1.12); } }
 
-  --r-lg:20px;
-  --r-md:14px;
-  --gap:clamp(6px,1.3vh,12px);
-  --pad-x:clamp(12px,4vw,18px);
+  /* 中央の英単語（視線の中心） */
+  #prompt { position: absolute; top: calc(9% + var(--safe-t)); left: 0; right: 0; text-align: center; z-index: 4; pointer-events: none; }
+  #qmode { font-size: 10px; font-weight: 800; letter-spacing: .18em; color: var(--muted); }
+  #qword { font-size: clamp(30px, 11vw, 52px); font-weight: 900; line-height: 1.05; margin: 2px 0 0;
+    text-shadow: 0 3px 18px rgba(0,0,0,.7), 0 0 22px rgba(79,214,255,.25); }
+  #qpron { font-size: 13px; color: var(--muted); font-family: ui-monospace, monospace; }
+  #timerWrap { width: min(66%, 300px); height: 6px; margin: 8px auto 0; border-radius: 6px; background: rgba(255,255,255,.14); overflow: hidden; }
+  #qtimer { height: 100%; width: 100%; transform-origin: left center; background: var(--accent); border-radius: 6px; }
 
-  --font-body:"Hiragino Kaku Gothic ProN","Hiragino Sans","Yu Gothic",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --font-display:"Trebuchet MS","Helvetica Neue",Arial,system-ui,sans-serif;
-  --font-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-}
+  /* 3本の道のラベル（道の上に表示） */
+  .lane { position: absolute; top: 40%; transform: translate(-50%, -50%); z-index: 4;
+    min-width: 84px; max-width: 30vw; padding: 10px 12px; border-radius: 14px;
+    background: var(--card); border: 1.5px solid var(--line); backdrop-filter: blur(6px);
+    text-align: center; box-shadow: 0 6px 24px rgba(0,0,0,.45); transition: transform .12s, opacity .2s; }
+  .laneKey { display: block; font-size: 9px; font-weight: 800; letter-spacing: .1em; color: var(--muted); margin-bottom: 2px; }
+  .laneText { display: block; font-size: clamp(15px, 4.6vw, 20px); font-weight: 800; line-height: 1.2; }
+  .lane--correct { border-color: #7dffa8; background: rgba(40,120,70,.55); box-shadow: 0 0 26px rgba(125,255,168,.5); }
+  .lane--wrong { border-color: #ff6a6a; background: rgba(130,40,50,.55); }
+  .lane--hintflash { border-color: #7dffa8; box-shadow: 0 0 26px rgba(125,255,168,.7); }
+  .lane--blocked { filter: grayscale(1); }
+  .lane::after { content: ''; position: absolute; left: 50%; bottom: -9px; transform: translateX(-50%);
+    border: 6px solid transparent; border-top-color: var(--line); }
 
-/* ── 2. base ───────────────────────────────────────────────────────────── */
-*,*::before,*::after{box-sizing:border-box}
-html,body{margin:0;padding:0;height:100%}
-body{
-  background:var(--abyss);
-  color:var(--ink);
-  font-family:var(--font-body);
-  font-weight:700;
-  overscroll-behavior:none;
-  -webkit-tap-highlight-color:transparent;
-  -webkit-text-size-adjust:100%;
-}
-#app{position:relative;height:100dvh;overflow:hidden}
-@supports not (height:100dvh){#app{height:100vh}}
+  /* バナー（突破/失敗の一言） */
+  .banner { position: absolute; top: 60%; left: 50%; transform: translate(-50%, 0) scale(.9);
+    z-index: 6; padding: 8px 16px; border-radius: 999px; font-weight: 900; font-size: 15px;
+    background: rgba(0,0,0,.55); border: 1px solid var(--line); opacity: 0; pointer-events: none; white-space: nowrap; transition: opacity .15s, transform .15s; }
+  .banner.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  .banner.good { color: #9dffc0; border-color: #7dffa8; }
+  .banner.bad { color: #ffb0b0; border-color: #ff6a6a; }
+  .banner.boss { color: var(--accent); border-color: var(--accent); }
 
-button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none}
-ul{margin:0;padding:0;list-style:none}
-kbd{font-family:var(--font-mono);background:#1b2440;border:1px solid var(--edge);border-radius:5px;padding:1px 5px;font-size:.9em}
-:focus-visible{outline:3px solid var(--azure);outline-offset:2px}
-[hidden]{display:none!important}
+  /* 下部ヒントバー（親指の届く位置・中央の視線を邪魔しない） */
+  #hints { position: absolute; left: 0; right: 0; bottom: calc(8px + var(--safe-b));
+    display: flex; justify-content: center; gap: 10px; z-index: 5; padding: 0 10px; }
+  .hint { flex: 1; max-width: 118px; display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 9px 6px; border-radius: 12px; background: var(--card); border: 1px solid var(--line);
+    font-size: 12px; font-weight: 800; color: var(--ink); cursor: pointer; }
+  .hint .ic { font-size: 17px; }
+  .hint .n { font-size: 11px; color: var(--accent); font-weight: 900; }
+  .hint.is-empty { opacity: .35; }
 
-.screen{
-  display:none;
-  position:absolute;inset:0;
-  flex-direction:column;
-  padding:calc(env(safe-area-inset-top) + 10px) var(--pad-x) calc(env(safe-area-inset-bottom) + 10px);
-}
-.screen.is-active{display:flex}
+  body.playing #title, body.playing #over { display: none; }
 
-.eyebrow{margin:0;font-size:11px;font-weight:900;letter-spacing:.22em;color:var(--gold)}
+  /* ── オーバーレイ（タイトル / 結果 / 遊び方） ── */
+  .overlay { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center; padding: 24px;
+    padding-top: calc(24px + var(--safe-t)); padding-bottom: calc(24px + var(--safe-b));
+    background: radial-gradient(120% 90% at 50% 8%, #241d4a 0%, #0a0817 62%); }
+  .overlay.hidden { display: none; }
+  .eyebrow { font-size: 12px; font-weight: 800; letter-spacing: .28em; color: var(--accent); }
+  .logo { font-size: clamp(38px, 13vw, 66px); font-weight: 900; line-height: .92; margin: 6px 0 0; }
+  .logo .run { display: block; color: var(--accent); text-shadow: 0 0 30px rgba(255,207,77,.35); }
+  .tagline { color: var(--muted); font-size: 15px; margin: 14px 0 22px; line-height: 1.5; }
+  .best { display: inline-flex; gap: 10px; align-items: center; padding: 10px 18px; border-radius: 14px;
+    background: var(--card); border: 1px solid var(--line); margin-bottom: 18px; }
+  .best small { color: var(--muted); font-size: 12px; }
+  .best b { font-size: 22px; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    min-height: 54px; padding: 0 30px; border-radius: 16px; border: none; cursor: pointer;
+    font-size: 18px; font-weight: 900; color: #201704;
+    background: linear-gradient(180deg, #ffe08a, #ffcf4d); box-shadow: 0 8px 26px rgba(255,207,77,.35); }
+  .btn:active { transform: translateY(1px); }
+  .btn-row { display: flex; gap: 10px; margin-top: 14px; }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); box-shadow: none; min-height: 46px; font-size: 14px; padding: 0 20px; }
+  .hintNote { color: var(--muted); font-size: 12px; margin-top: 16px; max-width: 320px; line-height: 1.6; }
+  .kbd { display: inline-block; min-width: 20px; padding: 1px 6px; border: 1px solid var(--line); border-radius: 6px; font-size: 11px; }
 
-/* ── 3. buttons ────────────────────────────────────────────────────────── */
-.btn{
-  display:block;width:100%;min-height:54px;
-  border-radius:var(--r-md);font-weight:900;letter-spacing:.02em;
-  transition:transform .08s ease,box-shadow .08s ease;
-}
-.btn-primary{
-  background:linear-gradient(180deg,#ffe08a,#f0a824);
-  color:#2a1c00;box-shadow:0 5px 0 var(--gold-deep);
-}
-.btn-primary:active{transform:translateY(4px);box-shadow:0 1px 0 var(--gold-deep)}
-.btn-ghost{background:#131b30;border:2px solid var(--edge);color:var(--ink)}
-.btn-ghost:active{transform:translateY(2px)}
-.title-row{display:flex;gap:8px;margin-top:8px;width:100%}
-.title-row .btn{min-height:46px;font-size:14px}
+  /* 結果 */
+  #over .logo { font-size: clamp(28px, 9vw, 44px); }
+  .result-row { display: flex; gap: 12px; margin: 10px 0 6px; }
+  .result-row .cell { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 18px; min-width: 108px; }
+  .result-row .cell small { display: block; color: var(--muted); font-size: 11px; }
+  .result-row .cell b { font-size: 24px; }
+  #ovNew { color: var(--accent); font-weight: 900; margin: 4px 0; }
+  .missed-wrap { width: 100%; max-width: 360px; margin: 12px 0; }
+  .missed-title { font-size: 12px; color: var(--muted); text-align: left; margin: 0 0 6px; letter-spacing: .08em; }
+  #ovMissed { display: flex; flex-wrap: wrap; gap: 6px; max-height: 150px; overflow-y: auto; justify-content: flex-start; }
+  .miss { display: flex; flex-direction: column; align-items: flex-start; background: var(--card); border: 1px solid var(--line);
+    border-radius: 10px; padding: 6px 10px; }
+  .miss b { font-size: 14px; } .miss span { font-size: 11px; color: var(--muted); }
+  .miss-empty { color: #9dffc0; font-weight: 800; }
 
-.icon-btn{
-  width:32px;height:32px;border-radius:10px;
-  background:#0b122488;border:1px solid var(--edge-soft);
-  font-size:14px;line-height:1;display:grid;place-items:center;
-}
-
-/* ── 4. title ──────────────────────────────────────────────────────────── */
-#title-screen{
-  justify-content:center;align-items:center;text-align:center;overflow-y:auto;
-  background:radial-gradient(ellipse at 50% 18%,#2b3a72 0%,#0d1329 48%,#05070f 100%);
-  overflow:hidden;
-}
-.starfield{
-  position:absolute;inset:-10%;
-  background-image:
-    radial-gradient(1.5px 1.5px at 20% 30%,#fff,transparent),
-    radial-gradient(1.5px 1.5px at 70% 12%,#fff,transparent),
-    radial-gradient(1px 1px at 45% 60%,#cfe3ff,transparent),
-    radial-gradient(1.5px 1.5px at 85% 55%,#fff,transparent),
-    radial-gradient(1px 1px at 10% 75%,#cfe3ff,transparent),
-    radial-gradient(1px 1px at 60% 85%,#fff,transparent),
-    radial-gradient(1px 1px at 33% 8%,#fff,transparent);
-  background-size:260px 260px;
-  opacity:.55;animation:drift 60s linear infinite;
-}
-@keyframes drift{to{transform:translate3d(-260px,130px,0)}}
-.moon{
-  position:absolute;top:6%;right:12%;width:64px;height:64px;border-radius:50%;
-  background:radial-gradient(circle at 35% 35%,#fff6d8,#f2d27a 60%,#c9a23f);
-  box-shadow:0 0 60px 12px #ffd97a33;
-}
-.title-inner{position:relative;z-index:1;width:min(100%,380px);display:flex;flex-direction:column;align-items:center}
-
-.logo{
-  font-family:var(--font-display);
-  margin:10px 0 12px;
-  font-size:clamp(30px,10vw,44px);
-  font-weight:900;letter-spacing:-.02em;line-height:.95;
-  text-shadow:0 3px 0 #000,0 0 26px #5aa9ff44;
-}
-.logo span{
-  display:block;color:var(--gold);
-  font-size:clamp(46px,16vw,72px);letter-spacing:.04em;
-  text-shadow:0 4px 0 #000,0 0 30px #ffcf4d55;
-}
-.lede{margin:0 0 20px;color:var(--dim);line-height:1.75;font-size:14px}
-
-.best-card{
-  width:100%;display:flex;align-items:center;justify-content:center;gap:16px;
-  background:#141d33dd;border:2px solid var(--edge);border-radius:var(--r-lg);
-  padding:14px 18px;margin-bottom:18px;box-shadow:0 16px 40px #0009;
-}
-.best-hero{font-size:44px;filter:drop-shadow(0 4px 0 #0008);animation:bob 2.4s ease-in-out infinite}
-.best-num span{display:block;font-size:12px;color:var(--dim)}
-.best-num strong{font-size:30px;color:var(--gold);font-family:var(--font-display)}
-.hint-key{margin:14px 0 0;font-size:11px;color:#6d7ba0}
-@keyframes bob{50%{transform:translateY(-6px)}}
-
-/* ── 5. game shell ─────────────────────────────────────────────────────── */
-#game-screen{gap:var(--gap);background:linear-gradient(#0e152a 0%,#080c18 100%);overflow-y:auto}
-
-.hud{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;flex:0 0 auto}
-.hud-block{background:#0e162b;border:1px solid var(--edge-soft);border-radius:12px;padding:6px 10px}
-.hud-block span{display:block;font-size:9px;letter-spacing:.14em;color:var(--dim)}
-.hud-block strong{font-size:clamp(15px,4.6vw,19px);color:var(--gold);font-family:var(--font-display)}
-.hud-block.center{text-align:center}
-.hud-block.right{text-align:right}
-.hud-block strong.bump{animation:bump .32s ease}
-@keyframes bump{40%{transform:scale(1.28);color:#fff}}
-
-/* ── 6. stage & fx ─────────────────────────────────────────────────────── */
-.stage{
-  position:relative;flex:1 1 96px;
-  min-height:64px;max-height:min(26vh,180px);
-  border-radius:var(--r-lg);overflow:hidden;
-  border:2px solid #2b3960;
-}
-.sky{position:absolute;inset:0;background:linear-gradient(var(--sky-1),var(--sky-2));transition:background .9s ease}
-.scroll-layer{position:absolute;left:0;right:0;height:52%;bottom:24%;opacity:.9}
-.scroll-layer.far{
-  bottom:26%;height:46%;opacity:.45;
-  background:
-    radial-gradient(60px 30px at 20% 100%,#1e3552 0 100%,transparent 101%),
-    radial-gradient(90px 42px at 55% 100%,#1e3552 0 100%,transparent 101%),
-    radial-gradient(70px 34px at 88% 100%,#1e3552 0 100%,transparent 101%);
-  background-size:200px 100%;
-  animation:scrollx 9s linear infinite;
-}
-.scroll-layer.near{
-  bottom:22%;height:34%;
-  background:
-    radial-gradient(46px 22px at 12% 100%,#20402f 0 100%,transparent 101%),
-    radial-gradient(30px 30px at 42% 100%,#20402f 0 100%,transparent 101%),
-    radial-gradient(52px 24px at 76% 100%,#20402f 0 100%,transparent 101%);
-  background-size:140px 100%;
-  animation:scrollx 5s linear infinite;
-}
-@keyframes scrollx{to{background-position-x:-200px}}
-.stage.dash .scroll-layer.far{animation-duration:1.6s}
-.stage.dash .scroll-layer.near{animation-duration:.8s}
-
-.ground{position:absolute;left:0;right:0;bottom:0;height:24%;background:linear-gradient(#3b7a45 0 26%,#6b4a30 26% 100%);box-shadow:inset 0 3px 0 #00000033}
-
-.hero,.foe{position:absolute;bottom:20%;line-height:1}
-.hero{left:14%;font-size:clamp(30px,9vw,44px);filter:drop-shadow(0 4px 0 #0007);animation:bob 1.1s ease-in-out infinite;transition:transform .16s ease}
-.hero.attack{transform:translateX(34px) rotate(-12deg) scale(1.14)}
-.hero.hurt{animation:none;transform:translateX(-14px) rotate(-14deg);filter:drop-shadow(0 4px 0 #0007) brightness(2) sepia(1) hue-rotate(-40deg)}
-.hero.combo::after{
-  content:"";position:absolute;inset:-14% -20%;border-radius:50%;
-  background:radial-gradient(circle,#ffcf4d55,transparent 68%);animation:aura .7s ease-in-out infinite alternate;
-}
-@keyframes aura{to{transform:scale(1.25);opacity:.5}}
-
-.foe{right:12%;display:flex;flex-direction:column;align-items:center;gap:4px;transition:transform .16s ease,opacity .2s ease}
-.foe-face{font-size:clamp(28px,8.5vw,42px);filter:drop-shadow(0 4px 0 #0007)}
-.foe.hit{transform:translateX(14px) scale(.92)}
-.foe.hit .foe-face{filter:drop-shadow(0 4px 0 #0007) brightness(3)}
-.foe.dead{transform:translateY(6px) scale(.2) rotate(24deg);opacity:0}
-.foe.spawn{animation:spawn .38s cubic-bezier(.2,1.5,.4,1)}
-@keyframes spawn{from{transform:translateY(-28px) scale(.4);opacity:0}}
-.foe-bar{width:52px;height:6px;border-radius:99px;background:#00000066;border:1px solid #ffffff33;overflow:hidden}
-.foe-bar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--crimson),#ff9a6b);transform-origin:left;transition:transform .22s ease}
-
-.stage-top{position:absolute;top:6px;left:8px;right:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;pointer-events:none}
-.stage-btns{display:flex;gap:6px;align-items:center;pointer-events:auto}
-.life{display:flex;gap:2px;font-size:15px;filter:drop-shadow(0 2px 0 #0009)}
-.life i{font-style:normal;transition:transform .2s ease,opacity .2s ease}
-.life i.gone{opacity:.3;transform:scale(.8)}
-.life i.breaking{animation:heartbreak .5s ease forwards}
-@keyframes heartbreak{30%{transform:scale(1.5)}100%{transform:scale(.8) rotate(18deg);opacity:.3}}
-.streak{
-  background:#0b1224cc;border:1px solid var(--gold);color:var(--gold);
-  border-radius:99px;padding:2px 9px;font-size:12px;font-weight:900;font-family:var(--font-display);
-}
-.streak.pop{animation:bump .3s ease}
-
-.fx{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.particle{position:absolute;width:8px;height:8px;border-radius:2px;will-change:transform,opacity;animation:particle var(--dur,.7s) ease-out forwards}
-@keyframes particle{
-  from{transform:translate(0,0) scale(1);opacity:1}
-  to{transform:translate(var(--dx),var(--dy)) scale(.2) rotate(240deg);opacity:0}
-}
-.float-text{
-  position:absolute;font-family:var(--font-display);font-weight:900;font-size:18px;
-  text-shadow:0 2px 0 #000;white-space:nowrap;animation:floatup 1s ease-out forwards;
-}
-@keyframes floatup{from{transform:translate(-50%,0);opacity:1}to{transform:translate(-50%,-46px);opacity:0}}
-
-/* ── 7. timer, card, choices ───────────────────────────────────────────── */
-.timer-track{flex:0 0 auto;height:10px;border-radius:99px;background:#1a2340;border:1px solid var(--edge-soft);overflow:hidden}
-.timer-bar{display:block;height:100%;width:100%;transform-origin:left center;background:linear-gradient(90deg,var(--jade),var(--gold))}
-.timer-track.low .timer-bar{background:linear-gradient(90deg,var(--crimson),#ff9c5b)}
-.timer-track.low{animation:lowpulse .5s ease-in-out infinite alternate}
-@keyframes lowpulse{to{box-shadow:0 0 0 3px #ff5f6d33}}
-
-.card{
-  flex:0 0 auto;
-  background:var(--slab);border:2px solid #2c3a5d;border-radius:var(--r-lg);
-  padding:clamp(10px,2vh,16px) clamp(10px,3vw,16px);
-}
-.card-meta{display:flex;justify-content:space-between;align-items:center}
-.chip{font-size:10px;font-weight:900;letter-spacing:.12em;color:#0e1526;background:var(--gold);border-radius:99px;padding:3px 9px;font-family:var(--font-display)}
-.chip-quiet{background:transparent;color:var(--dim);border:1px solid var(--edge-soft)}
-.word{
-  margin:clamp(6px,1.4vh,12px) 0 2px;text-align:center;
-  font-family:var(--font-display);font-weight:900;letter-spacing:.01em;
-  font-size:clamp(28px,9vw,42px);line-height:1.05;word-break:break-word;
-}
-.word.long{font-size:clamp(21px,6.4vw,32px)}
-.pron{margin:0 0 clamp(8px,1.6vh,14px);text-align:center;color:var(--dim);font-size:13px;font-weight:600;font-family:var(--font-mono)}
-
-.choices{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.choice{
-  position:relative;
-  min-height:clamp(50px,7.6vh,64px);
-  padding:8px 6px;
-  background:var(--slab-2);border:2px solid #3b4a6e;border-radius:var(--r-md);
-  font-weight:800;font-size:clamp(13px,3.7vw,16px);line-height:1.3;
-  transition:transform .07s ease,background .15s ease,border-color .15s ease,opacity .2s ease;
-}
-.choice:active{transform:scale(.97)}
-.choice .key{position:absolute;top:3px;left:6px;font-size:9px;color:#7b88ad;font-family:var(--font-mono)}
-.choice .label{display:block;padding:0 2px}
-.choice.correct{background:#15452c;border-color:var(--jade);color:#d8ffe8;animation:bump .3s ease}
-.choice.wrong{background:#4d2130;border-color:var(--crimson);color:#ffd9de}
-.choice.gone{opacity:.18}
-.choice:disabled{cursor:default}
-
-/* ── 8. items ──────────────────────────────────────────────────────────── */
-.items{flex:0 0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.item{
-  position:relative;min-height:clamp(50px,7.4vh,62px);
-  background:#101830;border:1px solid var(--edge);border-radius:var(--r-md);
-  padding:6px 4px;transition:transform .07s ease,opacity .2s ease;
-}
-.item:active{transform:scale(.96)}
-.item-icon{display:block;font-size:20px;line-height:1.1}
-.item small{display:block;font-size:9.5px;color:var(--dim);margin-top:2px}
-.item b{
-  position:absolute;top:4px;right:5px;min-width:17px;height:17px;line-height:17px;
-  background:var(--gold);color:#141414;border-radius:99px;font-size:10px;font-family:var(--font-display);
-}
-.item:disabled{opacity:.32}
-.item.used{animation:bump .3s ease}
-
-/* ── 9. result ─────────────────────────────────────────────────────────── */
-#result-screen{
-  justify-content:center;align-items:center;text-align:center;overflow-y:auto;
-  background:radial-gradient(ellipse at 50% 12%,#33255c 0%,#0c1226 50%,#05070f 100%);
-}
-.result-inner{width:min(100%,400px);display:flex;flex-direction:column;align-items:center;padding:12px 0}
-.result-title{font-family:var(--font-display);font-size:clamp(26px,8vw,34px);margin:6px 0 16px}
-.score-card{width:100%;background:var(--slab);border:2px solid var(--edge);border-radius:var(--r-lg);padding:18px}
-.score-card>span{display:block;font-size:12px;color:var(--dim)}
-.score-card strong{display:block;font-size:clamp(40px,13vw,54px);color:var(--gold);font-family:var(--font-display);line-height:1.1}
-.new-best{margin-top:8px;color:var(--jade);font-family:var(--font-display);font-size:20px;letter-spacing:.1em;animation:bump .7s ease infinite alternate}
-.result-grid{width:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:12px 0}
-.result-grid div{background:#121a2f;border:1px solid var(--edge-soft);border-radius:12px;padding:10px 4px}
-.result-grid span{display:block;font-size:9px;color:var(--dim)}
-.result-grid strong{font-size:20px;font-family:var(--font-display)}
-.miss-card{width:100%;background:#101830;border:1px solid var(--edge-soft);border-radius:var(--r-md);padding:12px;margin-bottom:12px;text-align:left}
-.miss-head{margin:0 0 8px;font-size:11px;letter-spacing:.1em;color:var(--gold)}
-.miss-card li{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-top:1px solid #ffffff11;font-size:13px}
-.miss-card li:first-child{border-top:0}
-.miss-card li b{font-family:var(--font-display);color:var(--ink)}
-.miss-card li span{color:var(--dim);font-weight:700;text-align:right}
-#result-screen .btn-primary{margin-top:4px}
-
-/* ── 10. overlays ──────────────────────────────────────────────────────── */
-.overlay{position:fixed;inset:0;z-index:40;background:#04070ee6;display:grid;place-items:center;padding:20px;backdrop-filter:blur(3px)}
-.sheet{width:min(100%,420px);background:var(--slab);border:2px solid var(--edge);border-radius:var(--r-lg);padding:22px;animation:rise .22s ease}
-.sheet-center{text-align:center}
-.sheet h2{margin:0 0 14px;font-family:var(--font-display)}
-.sheet-note{color:var(--dim);font-size:13px;margin:0 0 16px}
-.rules{margin-bottom:18px}
-.rules li{position:relative;padding-left:20px;margin-bottom:10px;color:#d5ddf5;font-size:14px;line-height:1.65;font-weight:600}
-.rules li::before{content:"▶";position:absolute;left:0;top:.1em;color:var(--gold);font-size:10px}
-.sheet .btn-ghost{margin-top:8px}
-@keyframes rise{from{transform:translateY(14px);opacity:0}}
-
-.banner{
-  position:fixed;left:0;right:0;top:38%;z-index:35;text-align:center;pointer-events:none;
-  font-family:var(--font-display);font-weight:900;font-size:clamp(26px,9vw,40px);
-  color:var(--gold);text-shadow:0 4px 0 #000,0 0 30px #ffcf4d88;
-  animation:bannerin 1.2s ease forwards;
-}
-@keyframes bannerin{
-  0%{transform:scale(.6);opacity:0}
-  20%{transform:scale(1.08);opacity:1}
-  75%{transform:scale(1);opacity:1}
-  100%{transform:scale(1.1);opacity:0}
-}
-.toast{
-  position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 96px);transform:translateX(-50%);
-  z-index:38;max-width:min(90%,420px);
-  background:#0a1020f2;border:2px solid var(--gold);border-radius:var(--r-md);
-  padding:11px 16px;font-size:14px;text-align:center;line-height:1.5;
-  animation:rise .2s ease;
-}
-.toast.jade{border-color:var(--jade)}
-.toast.crimson{border-color:var(--crimson)}
-.flash{position:fixed;inset:0;z-index:30;pointer-events:none;opacity:0;background:var(--crimson)}
-.flash.on{animation:flash .32s ease}
-@keyframes flash{from{opacity:.4}to{opacity:0}}
-#app.shake{animation:shake .34s cubic-bezier(.36,.07,.19,.97)}
-@keyframes shake{
-  10%,90%{transform:translateX(-3px)}
-  20%,80%{transform:translateX(5px)}
-  30%,50%,70%{transform:translateX(-8px)}
-  40%,60%{transform:translateX(8px)}
-}
-
-/* ── 11. responsive & preferences ──────────────────────────────────────── */
-@media (min-width:560px){
-  .screen{max-width:520px;margin-inline:auto;border-inline:1px solid #1c2540}
-  .choice{font-size:16px}
-}
-/* 横向き / 低い画面：ステージを畳んで回答領域を確保 */
-@media (orientation:landscape) and (max-height:520px){
-  .stage{max-height:88px;min-height:70px}
-  .hero,.foe{bottom:14%}
-  .items{grid-template-columns:repeat(3,1fr)}
-  .item{min-height:44px}
-  .item small{display:none}
-  .word{font-size:clamp(22px,5vw,30px)}
-  .choices{grid-template-columns:repeat(4,1fr)}
-  .choice{min-height:52px;font-size:12.5px}
-  .toast{bottom:8px}
-}
-@media (prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
-  .starfield,.scroll-layer{animation:none}
-}
-
+  /* 遊び方 */
+  #howto { background: rgba(6,4,16,.9); }
+  #howto .panel { max-width: 360px; background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 22px; text-align: left; }
+  #howto h3 { margin: 0 0 12px; }
+  #howto ol { margin: 0; padding-left: 20px; line-height: 1.7; font-size: 14px; color: var(--ink); }
+  #howto .mini { color: var(--muted); font-size: 12px; margin-top: 12px; line-height: 1.6; }
 </style>
 </head>
 <body>
 <div id="app">
+  <!-- プレイ画面 -->
+  <div id="field">
+    <canvas id="stage"></canvas>
 
-  <!-- ══════════ TITLE ══════════ -->
-  <section id="title-screen" class="screen is-active">
-    <div class="starfield" aria-hidden="true"></div>
-    <div class="moon" aria-hidden="true"></div>
-
-    <div class="title-inner">
-      <p class="eyebrow">ENGLISH WORD ADVENTURE</p>
-      <h1 class="logo">WORD&nbsp;QUEST<span>RUN</span></h1>
-      <p class="lede">制限時間内に意味を当てて、<br />倒して、走り続ける。</p>
-
-      <div class="best-card">
-        <div class="best-hero" aria-hidden="true">🧙</div>
-        <div class="best-num">
-          <span>自己ベスト</span>
-          <strong id="title-best">0 m</strong>
-        </div>
+    <div id="hud">
+      <div class="hud-l">
+        <span id="hudStage">古代遺跡</span>
+        <span id="hudDist">0 m</span>
       </div>
-
-      <button id="start-btn" type="button" class="btn btn-primary">冒険をはじめる</button>
-      <div class="title-row">
-        <button id="how-btn" type="button" class="btn btn-ghost">遊び方</button>
-        <button type="button" class="btn btn-ghost js-sound" aria-pressed="true">🔊 音あり</button>
-      </div>
-      <p class="hint-key">PCならキーボードの <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd> でも回答できます</p>
-    </div>
-  </section>
-
-  <!-- ══════════ GAME ══════════ -->
-  <section id="game-screen" class="screen">
-    <header class="hud">
-      <div class="hud-block"><span>DISTANCE</span><strong id="distance">0 m</strong></div>
-      <div class="hud-block center"><span>LEVEL</span><strong id="level">1</strong></div>
-      <div class="hud-block right"><span>BEST</span><strong id="best">0 m</strong></div>
-    </header>
-
-    <div class="stage" id="stage">
-      <div class="sky" id="sky" aria-hidden="true"></div>
-      <div class="scroll-layer far" aria-hidden="true"></div>
-      <div class="scroll-layer near" aria-hidden="true"></div>
-      <div class="ground" aria-hidden="true"></div>
-
-      <div class="foe" id="foe">
-        <div class="foe-bar"><i id="foe-hp"></i></div>
-        <div class="foe-face" id="foe-face">👾</div>
-      </div>
-      <div class="hero" id="hero" aria-hidden="true">🧙</div>
-
-      <div class="stage-top">
-        <div class="life" id="life" aria-label="残りライフ"></div>
-        <div class="stage-btns">
-          <span class="streak" id="streak" hidden>×0</span>
-          <button id="pause-btn" type="button" class="icon-btn" aria-label="一時停止">⏸</button>
-        </div>
-      </div>
-      <div class="fx" id="fx" aria-hidden="true"></div>
-    </div>
-
-    <div class="timer-track"><i id="timer-bar" class="timer-bar"></i></div>
-
-    <div class="card">
-      <div class="card-meta">
-        <span id="difficulty" class="chip">EASY</span>
-        <span id="qcount" class="chip chip-quiet">Q1</span>
-      </div>
-      <h2 id="word" class="word">apple</h2>
-      <p id="pronunciation" class="pron">/ˈæp.əl/</p>
-      <div id="choices" class="choices" role="group" aria-label="選択肢"></div>
-    </div>
-
-    <div class="items">
-      <button id="item-fifty" type="button" class="item">
-        <span class="item-icon">📜</span><small>2択にする</small><b id="count-fifty">3</b>
-      </button>
-      <button id="item-time" type="button" class="item">
-        <span class="item-icon">⏳</span><small>時間を回復</small><b id="count-time">3</b>
-      </button>
-      <button id="item-hint" type="button" class="item">
-        <span class="item-icon">🔮</span><small>例文を見る</small><b id="count-hint">3</b>
-      </button>
-    </div>
-  </section>
-
-  <!-- ══════════ RESULT ══════════ -->
-  <section id="result-screen" class="screen">
-    <div class="result-inner">
-      <p class="eyebrow">ADVENTURE RESULT</p>
-      <h2 class="result-title">冒険終了</h2>
-
-      <div class="score-card">
-        <span>今回の記録</span>
-        <strong id="final-distance">0 m</strong>
-        <div id="new-best" class="new-best" hidden>NEW BEST!</div>
-      </div>
-
-      <div class="result-grid">
-        <div><span>レベル</span><strong id="final-level">1</strong></div>
-        <div><span>最大連続</span><strong id="final-streak">0</strong></div>
-        <div><span>正解数</span><strong id="final-correct">0</strong></div>
-        <div><span>撃破</span><strong id="final-kills">0</strong></div>
-      </div>
-
-      <div class="miss-card" id="miss-card" hidden>
-        <p class="miss-head">取りこぼした単語</p>
-        <ul id="miss-list"></ul>
-      </div>
-
-      <button id="retry-btn" type="button" class="btn btn-primary">もう一度挑戦</button>
-      <div class="title-row">
-        <button id="share-btn" type="button" class="btn btn-ghost">記録をシェア</button>
-        <button id="home-btn" type="button" class="btn btn-ghost">タイトルへ</button>
+      <div class="hud-r">
+        <span id="hudLives">❤❤❤</span>
+        <span id="hudCombo"></span>
       </div>
     </div>
-  </section>
 
-  <!-- ══════════ OVERLAYS ══════════ -->
-  <div id="how-panel" class="overlay" hidden>
-    <div class="sheet">
-      <h2>遊び方</h2>
-      <ul class="rules">
-        <li>制限時間内に、英単語の意味を4択から選びます。</li>
-        <li>正解すると距離が伸び、敵にダメージ。連続正解でボーナスが増えます。</li>
-        <li>間違い・時間切れでライフが1つ減ります。0でゲーム終了。</li>
-        <li>100mごとにレベルアップ。単語が難しくなり、制限時間も短くなります。</li>
-        <li>道具は1回の冒険につき3個ずつ。使いどころが勝負です。</li>
-      </ul>
-      <button id="close-how" type="button" class="btn btn-primary">わかった</button>
+    <div id="prompt">
+      <div id="qmode">EASY</div>
+      <h1 id="qword">—</h1>
+      <div id="qpron"></div>
+      <div id="timerWrap"><div id="qtimer"></div></div>
+    </div>
+
+    <div class="lane" id="lane0"><span class="laneKey">◀ 左</span><span class="laneText">—</span></div>
+    <div class="lane" id="lane1"><span class="laneKey">▲ 中央</span><span class="laneText">—</span></div>
+    <div class="lane" id="lane2"><span class="laneKey">右 ▶</span><span class="laneText">—</span></div>
+
+    <div id="banner" class="banner"></div>
+
+    <div id="hints">
+      <div class="hint" id="hintScroll"><span class="ic">📜</span>巻物<span class="n" id="hintScrollN">3</span></div>
+      <div class="hint" id="hintSand"><span class="ic">⏳</span>時の砂<span class="n" id="hintSandN">3</span></div>
+      <div class="hint" id="hintEye"><span class="ic">👁</span>魔法の目<span class="n" id="hintEyeN">3</span></div>
     </div>
   </div>
 
-  <div id="pause-overlay" class="overlay" hidden>
-    <div class="sheet sheet-center">
-      <h2>一時停止中</h2>
-      <p class="sheet-note">タイマーは止まっています。</p>
-      <button id="resume-btn" type="button" class="btn btn-primary">冒険を再開</button>
-      <button id="quit-btn" type="button" class="btn btn-ghost">この冒険をやめる</button>
+  <!-- タイトル -->
+  <div id="title" class="overlay">
+    <div class="eyebrow">ENGLISH WORD ADVENTURE</div>
+    <h1 class="logo">WORD QUEST<span class="run">RUN</span></h1>
+    <p class="tagline">走りながら、意味に合う<b>3つの道</b>を選ぶ。<br>どこまで走れるか、挑戦しよう。</p>
+    <div class="best"><span>🏆</span><small>自己ベスト</small><b id="titleBest">0 m</b></div>
+    <button class="btn" id="startBtn">▶ 冒険をはじめる</button>
+    <div class="btn-row">
+      <button class="btn ghost" id="howtoBtn">遊び方</button>
+      <button class="btn ghost" id="soundBtn">🔊 音あり</button>
     </div>
+    <p class="hintNote">道を <b>タップ</b>（左・中央・右）か <b>スワイプ</b>（←・↑・→）で選ぶ。<br>PCは <span class="kbd">←</span> <span class="kbd">↑</span> <span class="kbd">→</span> でも操作できます。</p>
   </div>
 
-  <div id="banner" class="banner" hidden><span id="banner-text"></span></div>
-  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-  <div id="flash" class="flash" aria-hidden="true"></div>
+  <!-- 結果 -->
+  <div id="over" class="overlay hidden">
+    <div class="eyebrow">RESULT</div>
+    <h1 class="logo">冒険おわり</h1>
+    <div id="ovNew" style="display:none">🎉 自己ベスト更新！</div>
+    <div class="result-row">
+      <div class="cell"><small>走った距離</small><b id="ovDist">0 m</b></div>
+      <div class="cell"><small>自己ベスト</small><b id="ovBest">0 m</b></div>
+      <div class="cell"><small>最大コンボ</small><b id="ovCombo">0</b></div>
+    </div>
+    <div class="missed-wrap">
+      <p class="missed-title">🔁 まちがえた単語（次回また出ます）</p>
+      <div id="ovMissed"></div>
+    </div>
+    <button class="btn" id="retryBtn">▶ もう一度走る</button>
+    <div class="btn-row"><button class="btn ghost" id="homeBtn">タイトルへ</button></div>
+  </div>
+
+  <!-- 遊び方 -->
+  <div id="howto" class="overlay hidden">
+    <div class="panel">
+      <h3>遊び方</h3>
+      <ol>
+        <li>画面中央に<b>英単語</b>が出ます。</li>
+        <li>3本の道に<b>日本語の意味</b>が1つずつ。</li>
+        <li>正しい意味の道を選ぶ（左・中央・右）。</li>
+        <li>正解ならそのまま走り抜け、距離がのびる。</li>
+        <li>まちがえるとライフが1つ減る。0でおわり。</li>
+        <li>連続正解でスピードアップ！どこまで走れる？</li>
+      </ol>
+      <p class="mini">📜 巻物=誤答を1本封鎖 / ⏳ 時の砂=分岐をゆっくり / 👁 魔法の目=正解を一瞬光らせる<br>一定距離で<b>ボス</b>が出現。3問正解で撃破！</p>
+      <button class="btn" id="howtoClose" style="margin-top:16px">とじる</button>
+    </div>
+  </div>
 </div>
 
+<script src="words.js"></script>
+<script src="game.js"></script>
 <script>
-/* WORD QUEST RUN — 単語データ
- * w: 英単語 / p: 発音記号 / a: 正解の訳 / x: ダミー選択肢(同じ品詞で揃える) / d: 難易度1-4 / e: 例文
- * 追加するときは d を必ず入れること。d ごとに最低12語あるとレベル進行が破綻しない。
- */
-window.WORDS = [
-  /* ── d1 / EASY ───────────────────────────────── */
-  { w: "apple", p: "/ˈæp.əl/", a: "りんご", x: ["机", "指輪", "手紙"], d: 1, e: "I eat an apple every morning." },
-  { w: "book", p: "/bʊk/", a: "本", x: ["鳥", "海", "橋"], d: 1, e: "This book is very interesting." },
-  { w: "happy", p: "/ˈhæp.i/", a: "幸せな", x: ["静かな", "重い", "短い"], d: 1, e: "She looks happy today." },
-  { w: "run", p: "/rʌn/", a: "走る", x: ["歌う", "眠る", "書く"], d: 1, e: "I run in the park every Sunday." },
-  { w: "water", p: "/ˈwɔː.tər/", a: "水", x: ["火", "風", "土"], d: 1, e: "Please drink some water." },
-  { w: "friend", p: "/frend/", a: "友達", x: ["先生", "医者", "客"], d: 1, e: "He is my best friend." },
-  { w: "strong", p: "/strɔːŋ/", a: "強い", x: ["薄い", "遅い", "狭い"], d: 1, e: "The hero is very strong." },
-  { w: "night", p: "/naɪt/", a: "夜", x: ["朝", "冬", "町"], d: 1, e: "The stars are bright at night." },
-  { w: "buy", p: "/baɪ/", a: "買う", x: ["投げる", "洗う", "貸す"], d: 1, e: "I want to buy a new bag." },
-  { w: "listen", p: "/ˈlɪs.ən/", a: "聞く", x: ["触る", "数える", "押す"], d: 1, e: "Listen to this song." },
-  { w: "small", p: "/smɔːl/", a: "小さい", x: ["明るい", "甘い", "固い"], d: 1, e: "My room is very small." },
-  { w: "money", p: "/ˈmʌn.i/", a: "お金", x: ["時計", "地図", "鍵"], d: 1, e: "I don't have enough money." },
-  { w: "open", p: "/ˈəʊ.pən/", a: "開ける", x: ["埋める", "混ぜる", "曲げる"], d: 1, e: "Open the window, please." },
-  { w: "school", p: "/skuːl/", a: "学校", x: ["台所", "工場", "空港"], d: 1, e: "I walk to school every day." },
-  { w: "hungry", p: "/ˈhʌŋ.ɡri/", a: "空腹の", x: ["眠い", "退屈な", "有名な"], d: 1, e: "I'm hungry. Let's eat lunch." },
-  { w: "answer", p: "/ˈɑːn.sər/", a: "答える", x: ["並ぶ", "落ちる", "泳ぐ"], d: 1, e: "Please answer my question." },
-  { w: "city", p: "/ˈsɪt.i/", a: "都市", x: ["森", "谷", "島"], d: 1, e: "Tokyo is a big city." },
-  { w: "beautiful", p: "/ˈbjuː.tɪ.fəl/", a: "美しい", x: ["寒い", "安い", "危ない"], d: 1, e: "What a beautiful sunset!" },
-  { w: "learn", p: "/lɜːn/", a: "学ぶ", x: ["借りる", "捨てる", "叫ぶ"], d: 1, e: "I want to learn English." },
-  { w: "letter", p: "/ˈlet.ər/", a: "手紙", x: ["枕", "皿", "靴"], d: 1, e: "I got a letter from my friend." },
-
-  /* ── d2 / NORMAL ─────────────────────────────── */
-  { w: "travel", p: "/ˈtræv.əl/", a: "旅行する", x: ["料理する", "修理する", "掃除する"], d: 2, e: "I want to travel abroad." },
-  { w: "choose", p: "/tʃuːz/", a: "選ぶ", x: ["隠す", "壊す", "運ぶ"], d: 2, e: "Choose your favorite color." },
-  { w: "future", p: "/ˈfjuː.tʃər/", a: "未来", x: ["過去", "記憶", "距離"], d: 2, e: "We can change the future." },
-  { w: "improve", p: "/ɪmˈpruːv/", a: "改善する", x: ["拒否する", "比較する", "延期する"], d: 2, e: "Practice will improve your English." },
-  { w: "protect", p: "/prəˈtekt/", a: "守る", x: ["攻撃する", "捨てる", "交換する"], d: 2, e: "This shield can protect you." },
-  { w: "discover", p: "/dɪˈskʌv.ər/", a: "発見する", x: ["説明する", "想像する", "輸入する"], d: 2, e: "They discovered a hidden cave." },
-  { w: "reason", p: "/ˈriː.zən/", a: "理由", x: ["感情", "順番", "習慣"], d: 2, e: "Tell me the reason for your choice." },
-  { w: "prepare", p: "/prɪˈpeər/", a: "準備する", x: ["諦める", "訪ねる", "遅れる"], d: 2, e: "Let's prepare for the trip." },
-  { w: "danger", p: "/ˈdeɪn.dʒər/", a: "危険", x: ["幸運", "自由", "沈黙"], d: 2, e: "The sign warns of danger." },
-  { w: "increase", p: "/ɪnˈkriːs/", a: "増える", x: ["消える", "止まる", "溶ける"], d: 2, e: "Prices increase every year." },
-  { w: "quiet", p: "/ˈkwaɪ.ət/", a: "静かな", x: ["新鮮な", "正直な", "有能な"], d: 2, e: "The library is very quiet." },
-  { w: "return", p: "/rɪˈtɜːn/", a: "戻る", x: ["育つ", "働く", "見つめる"], d: 2, e: "I will return before dark." },
-  { w: "difficult", p: "/ˈdɪf.ɪ.kəlt/", a: "難しい", x: ["柔らかい", "騒がしい", "空っぽの"], d: 2, e: "This question is too difficult." },
-  { w: "village", p: "/ˈvɪl.ɪdʒ/", a: "村", x: ["城", "港", "宿"], d: 2, e: "A small village stands by the river." },
-  { w: "notice", p: "/ˈnəʊ.tɪs/", a: "気づく", x: ["黙る", "祈る", "追う"], d: 2, e: "Did you notice the change?" },
-  { w: "reduce", p: "/rɪˈdjuːs/", a: "減らす", x: ["集める", "続ける", "混ぜる"], d: 2, e: "We must reduce plastic waste." },
-  { w: "opinion", p: "/əˈpɪn.jən/", a: "意見", x: ["証拠", "結果", "手順"], d: 2, e: "I'd like to hear your opinion." },
-  { w: "silent", p: "/ˈsaɪ.lənt/", a: "無言の", x: ["派手な", "健康な", "斜めの"], d: 2, e: "He stayed silent for a while." },
-  { w: "escape", p: "/ɪˈskeɪp/", a: "逃げる", x: ["戦う", "眠る", "祝う"], d: 2, e: "The thief tried to escape." },
-  { w: "brave", p: "/breɪv/", a: "勇敢な", x: ["正確な", "退屈な", "豊かな"], d: 2, e: "A brave knight entered the cave." },
-
-  /* ── d3 / HARD ───────────────────────────────── */
-  { w: "ancient", p: "/ˈeɪn.ʃənt/", a: "古代の", x: ["現代の", "巨大な", "透明な"], d: 3, e: "We found an ancient temple." },
-  { w: "challenge", p: "/ˈtʃæl.ɪndʒ/", a: "挑戦", x: ["安心", "習慣", "約束"], d: 3, e: "This is a difficult challenge." },
-  { w: "achieve", p: "/əˈtʃiːv/", a: "達成する", x: ["避ける", "依頼する", "借りる"], d: 3, e: "You can achieve your goal." },
-  { w: "essential", p: "/ɪˈsen.ʃəl/", a: "不可欠な", x: ["一時的な", "偶然の", "平凡な"], d: 3, e: "Water is essential for life." },
-  { w: "overcome", p: "/ˌəʊ.vəˈkʌm/", a: "克服する", x: ["観察する", "延期する", "区別する"], d: 3, e: "We must overcome our fears." },
-  { w: "recognize", p: "/ˈrek.əɡ.naɪz/", a: "見分ける", x: ["組み立てる", "翻訳する", "包む"], d: 3, e: "I didn't recognize him at first." },
-  { w: "obvious", p: "/ˈɒb.vi.əs/", a: "明らかな", x: ["曖昧な", "貴重な", "厳しい"], d: 3, e: "The answer is obvious." },
-  { w: "influence", p: "/ˈɪn.flu.əns/", a: "影響", x: ["費用", "境界", "義務"], d: 3, e: "Music has a strong influence on me." },
-  { w: "gradually", p: "/ˈɡrædʒ.u.ə.li/", a: "徐々に", x: ["突然に", "偶然に", "頻繁に"], d: 3, e: "The sky gradually turned red." },
-  { w: "reliable", p: "/rɪˈlaɪ.ə.bəl/", a: "信頼できる", x: ["利用できる", "分解できる", "交換できる"], d: 3, e: "She is a reliable partner." },
-  { w: "consequence", p: "/ˈkɒn.sɪ.kwəns/", a: "結果", x: ["目的", "前提", "手段"], d: 3, e: "Think about the consequence of your action." },
-  { w: "eliminate", p: "/ɪˈlɪm.ɪ.neɪt/", a: "取り除く", x: ["受け入れる", "積み重ねる", "呼び戻す"], d: 3, e: "We need to eliminate the errors." },
-  { w: "sufficient", p: "/səˈfɪʃ.ənt/", a: "十分な", x: ["不足した", "余分な", "強引な"], d: 3, e: "We have sufficient food for a week." },
-  { w: "abandon", p: "/əˈbæn.dən/", a: "見捨てる", x: ["引き受ける", "取り戻す", "呼び寄せる"], d: 3, e: "Never abandon your friends." },
-  { w: "generous", p: "/ˈdʒen.ər.əs/", a: "気前のよい", x: ["用心深い", "せっかちな", "頑固な"], d: 3, e: "He is generous to everyone." },
-  { w: "confident", p: "/ˈkɒn.fɪ.dənt/", a: "自信のある", x: ["謙虚な", "無関心な", "疑い深い"], d: 3, e: "She is confident about the test." },
-  { w: "expand", p: "/ɪkˈspænd/", a: "拡大する", x: ["縮小する", "分類する", "停止する"], d: 3, e: "The company plans to expand overseas." },
-  { w: "curious", p: "/ˈkjʊə.ri.əs/", a: "好奇心の強い", x: ["用心深い", "疑い深い", "冷淡な"], d: 3, e: "Children are curious about everything." },
-
-  /* ── d4 / MASTER ─────────────────────────────── */
-  { w: "reluctant", p: "/rɪˈlʌk.tənt/", a: "気が進まない", x: ["誇らしい", "素早い", "寛大な"], d: 4, e: "He was reluctant to leave." },
-  { w: "inevitable", p: "/ɪnˈev.ɪ.tə.bəl/", a: "避けられない", x: ["予測できない", "理解しやすい", "価値のない"], d: 4, e: "Change is inevitable." },
-  { w: "meticulous", p: "/məˈtɪk.jə.ləs/", a: "細心の", x: ["乱暴な", "無関心な", "単純な"], d: 4, e: "She is meticulous about details." },
-  { w: "ambiguous", p: "/æmˈbɪɡ.ju.əs/", a: "曖昧な", x: ["明白な", "永続的な", "実用的な"], d: 4, e: "The message was ambiguous." },
-  { w: "profound", p: "/prəˈfaʊnd/", a: "深遠な", x: ["表面的な", "一方的な", "断片的な"], d: 4, e: "His speech had a profound meaning." },
-  { w: "diminish", p: "/dɪˈmɪn.ɪʃ/", a: "減少する", x: ["急増する", "変質する", "分岐する"], d: 4, e: "The pain will diminish soon." },
-  { w: "compelling", p: "/kəmˈpel.ɪŋ/", a: "説得力のある", x: ["回りくどい", "行き当たりばったりの", "取るに足らない"], d: 4, e: "She gave a compelling argument." },
-  { w: "scrutinize", p: "/ˈskruː.tɪ.naɪz/", a: "綿密に調べる", x: ["おおまかに見積もる", "大げさに伝える", "巧みに言い換える"], d: 4, e: "The lawyer scrutinized the contract." },
-  { w: "resilient", p: "/rɪˈzɪl.i.ənt/", a: "回復力のある", x: ["壊れやすい", "移り気な", "融通の利かない"], d: 4, e: "Children are surprisingly resilient." },
-  { w: "arbitrary", p: "/ˈɑː.bɪ.trə.ri/", a: "恣意的な", x: ["体系的な", "自発的な", "相互的な"], d: 4, e: "The rule seems completely arbitrary." },
-  { w: "articulate", p: "/ɑːˈtɪk.jə.leɪt/", a: "明確に述べる", x: ["遠回しに触れる", "適当に受け流す", "強引に打ち切る"], d: 4, e: "He can articulate his ideas clearly." },
-  { w: "prevalent", p: "/ˈprev.əl.ənt/", a: "広く行き渡った", x: ["ごく限られた", "時代遅れの", "極めて高価な"], d: 4, e: "This custom is prevalent in the north." },
-  { w: "tedious", p: "/ˈtiː.di.əs/", a: "退屈な", x: ["刺激的な", "手軽な", "格式ばった"], d: 4, e: "Copying the data was a tedious task." },
-  { w: "unprecedented", p: "/ʌnˈpres.ɪ.den.tɪd/", a: "前例のない", x: ["申し分のない", "見返りのない", "抑えようのない"], d: 4, e: "The team achieved unprecedented success." },
-];
-
-</script>
-<script>
-/* ==========================================================================
-   WORD QUEST RUN — app.js
-   構成: helpers / Store / Sfx / FX / Timer / Game
-   ========================================================================== */
-(function () {
-  'use strict';
-
-  var WORDS = Array.isArray(window.WORDS) ? window.WORDS : [];
-
-  /* ── helpers ─────────────────────────────────────────────────────────── */
-  function $(sel) { return document.querySelector(sel); }
-  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
-
-  /** Fisher-Yates。sort(()=>Math.random()-.5) は偏るので使わない */
-  function shuffle(list) {
-    var a = list.slice();
-    for (var i = a.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var t = a[i]; a[i] = a[j]; a[j] = t;
-    }
-    return a;
-  }
-  function pick(list) { return list[Math.floor(Math.random() * list.length)]; }
-
-  /* ── Store: localStorage が使えない環境でも落ちない ──────────────────── */
-  var Store = {
-    get: function (k, fallback) {
-      try { var v = localStorage.getItem(k); return v === null ? fallback : v; }
-      catch (e) { return fallback; }
-    },
-    set: function (k, v) { try { localStorage.setItem(k, String(v)); } catch (e) { /* noop */ } }
-  };
-  var KEY_BEST = 'wqr.best';
-  var KEY_SOUND = 'wqr.sound';
-  (function migrate() {           // 旧バージョンの記録を引き継ぐ
-    var old = Store.get('wordQuestRunBest', null);
-    if (old !== null && Store.get(KEY_BEST, null) === null) Store.set(KEY_BEST, old);
-  })();
-  function getBest() { return Number(Store.get(KEY_BEST, 0)) || 0; }
-
-  /* ── Sfx: 外部音源なしの WebAudio 効果音 ─────────────────────────────── */
-  var Sfx = {
-    ctx: null,
-    on: Store.get(KEY_SOUND, '1') === '1',
-    unlock: function () {
-      var AC = window.AudioContext || window.webkitAudioContext;
-      if (!AC) return;
-      try {
-        if (!this.ctx) this.ctx = new AC();
-        if (this.ctx.state === 'suspended') this.ctx.resume();
-      } catch (e) { this.ctx = null; }
-    },
-    tone: function (o) {
-      if (!this.on || !this.ctx) return;
-      try {
-        var c = this.ctx, t0 = c.currentTime + (o.delay || 0), d = o.d || 0.12;
-        var osc = c.createOscillator(), g = c.createGain();
-        osc.type = o.type || 'square';
-        osc.frequency.setValueAtTime(o.f, t0);
-        if (o.f2) osc.frequency.exponentialRampToValueAtTime(Math.max(30, o.f2), t0 + d);
-        g.gain.setValueAtTime(0.0001, t0);
-        g.gain.exponentialRampToValueAtTime(o.v || 0.12, t0 + 0.012);
-        g.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
-        osc.connect(g); g.connect(c.destination);
-        osc.start(t0); osc.stop(t0 + d + 0.03);
-      } catch (e) { /* noop */ }
-    },
-    noise: function (d, v, delay) {
-      if (!this.on || !this.ctx) return;
-      try {
-        var c = this.ctx, t0 = c.currentTime + (delay || 0);
-        var len = Math.floor(c.sampleRate * d);
-        var buf = c.createBuffer(1, len, c.sampleRate), data = buf.getChannelData(0);
-        for (var i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
-        var src = c.createBufferSource(); src.buffer = buf;
-        var f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1400;
-        var g = c.createGain(); g.gain.value = v || 0.16;
-        src.connect(f); f.connect(g); g.connect(c.destination);
-        src.start(t0);
-      } catch (e) { /* noop */ }
-    },
-    ui: function () { this.tone({ f: 520, d: 0.07, v: 0.07 }); },
-    correct: function (streak) {
-      var base = 523.25 * Math.pow(2, clamp(streak - 1, 0, 7) / 12);
-      this.tone({ f: base, d: 0.09, v: 0.1, type: 'square' });
-      this.tone({ f: base * 1.26, d: 0.09, v: 0.1, type: 'square', delay: 0.07 });
-      this.tone({ f: base * 1.5, d: 0.16, v: 0.11, type: 'triangle', delay: 0.14 });
-    },
-    wrong: function () {
-      this.tone({ f: 300, f2: 80, d: 0.34, v: 0.14, type: 'sawtooth' });
-      this.noise(0.18, 0.1);
-    },
-    kill: function () {
-      this.noise(0.3, 0.2);
-      this.tone({ f: 190, f2: 46, d: 0.4, v: 0.16, type: 'triangle' });
-    },
-    levelup: function () {
-      var n = [523.25, 659.25, 783.99, 1046.5];
-      for (var i = 0; i < n.length; i++) this.tone({ f: n[i], d: 0.14, v: 0.11, delay: i * 0.08, type: 'triangle' });
-    },
-    tick: function () { this.tone({ f: 1500, d: 0.035, v: 0.05, type: 'square' }); },
-    over: function () {
-      var n = [523.25, 440, 349.23, 261.63];
-      for (var i = 0; i < n.length; i++) this.tone({ f: n[i], d: 0.3, v: 0.12, delay: i * 0.16, type: 'triangle' });
-    }
-  };
-  function vibrate(ms) { try { if (Sfx.on && navigator.vibrate) navigator.vibrate(ms); } catch (e) { } }
-
-  /* ── DOM ─────────────────────────────────────────────────────────────── */
-  var el = {
-    app: $('#app'),
-    titleBest: $('#title-best'), start: $('#start-btn'), how: $('#how-btn'), howPanel: $('#how-panel'),
-    closeHow: $('#close-how'), sounds: document.querySelectorAll('.js-sound'),
-    distance: $('#distance'), level: $('#level'), best: $('#best'),
-    stage: $('#stage'), sky: $('#sky'), fx: $('#fx'), hero: $('#hero'),
-    foe: $('#foe'), foeFace: $('#foe-face'), foeHp: $('#foe-hp'),
-    life: $('#life'), streak: $('#streak'), pause: $('#pause-btn'),
-    track: $('.timer-track'), bar: $('#timer-bar'),
-    word: $('#word'), pron: $('#pronunciation'), difficulty: $('#difficulty'), qcount: $('#qcount'),
-    choices: $('#choices'),
-    fifty: $('#item-fifty'), time: $('#item-time'), hint: $('#item-hint'),
-    cFifty: $('#count-fifty'), cTime: $('#count-time'), cHint: $('#count-hint'),
-    pausePanel: $('#pause-overlay'), resume: $('#resume-btn'), quit: $('#quit-btn'),
-    finalDistance: $('#final-distance'), finalLevel: $('#final-level'), finalStreak: $('#final-streak'),
-    finalCorrect: $('#final-correct'), finalKills: $('#final-kills'), newBest: $('#new-best'),
-    missCard: $('#miss-card'), missList: $('#miss-list'),
-    retry: $('#retry-btn'), share: $('#share-btn'), home: $('#home-btn'),
-    banner: $('#banner'), bannerText: $('#banner-text'), toast: $('#toast'), flash: $('#flash')
-  };
-
-  /* ── FX ──────────────────────────────────────────────────────────────── */
-  var toastTimer = 0;
-  var FX = {
-    at: function (node) {                       // stage 内での中心座標
-      var a = node.getBoundingClientRect(), b = el.stage.getBoundingClientRect();
-      return { x: a.left - b.left + a.width / 2, y: a.top - b.top + a.height / 2 };
-    },
-    burst: function (p, colors, count) {
-      count = count || 14;
-      for (var i = 0; i < count; i++) {
-        var s = document.createElement('span');
-        var ang = Math.random() * Math.PI * 2, dist = 26 + Math.random() * 54;
-        s.className = 'particle';
-        s.style.left = p.x + 'px';
-        s.style.top = p.y + 'px';
-        s.style.background = colors[i % colors.length];
-        s.style.setProperty('--dx', Math.cos(ang) * dist + 'px');
-        s.style.setProperty('--dy', (Math.sin(ang) * dist - 14) + 'px');
-        s.style.setProperty('--dur', (0.5 + Math.random() * 0.4) + 's');
-        el.fx.appendChild(s);
-        s.addEventListener('animationend', function () { this.remove(); });
-      }
-    },
-    float: function (p, text, color) {
-      var s = document.createElement('span');
-      s.className = 'float-text';
-      s.textContent = text;
-      s.style.left = p.x + 'px';
-      s.style.top = p.y + 'px';
-      s.style.color = color;
-      el.fx.appendChild(s);
-      s.addEventListener('animationend', function () { this.remove(); });
-    },
-    shake: function () {
-      el.app.classList.remove('shake');
-      void el.app.offsetWidth;
-      el.app.classList.add('shake');
-    },
-    flash: function () {
-      el.flash.classList.remove('on');
-      void el.flash.offsetWidth;
-      el.flash.classList.add('on');
-    },
-    banner: function (text) {
-      el.bannerText.textContent = text;
-      el.banner.hidden = false;
-      el.banner.style.animation = 'none';
-      void el.banner.offsetWidth;
-      el.banner.style.animation = '';
-      clearTimeout(el.banner._t);
-      el.banner._t = setTimeout(function () { el.banner.hidden = true; }, 1200);
-    },
-    toast: function (msg, tone, ms) {
-      el.toast.textContent = msg;
-      el.toast.className = 'toast' + (tone ? ' ' + tone : '');
-      el.toast.hidden = false;
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(function () { el.toast.hidden = true; }, ms || 1300);
-    },
-    hideToast: function () { clearTimeout(toastTimer); el.toast.hidden = true; }
-  };
-
-  /* ── Timer: requestAnimationFrame ベース。中断・再開できる ───────────── */
-  var Timer = {
-    raf: 0, total: 0, endAt: 0, left: 0, running: false, onEnd: null, lastTick: 0,
-    start: function (ms, onEnd) {
-      this.stop();
-      this.total = ms; this.left = ms; this.endAt = performance.now() + ms;
-      this.onEnd = onEnd; this.lastTick = 0; this.running = true;
-      el.track.classList.remove('low');
-      this.render(1);
-      this.loop();
-    },
-    loop: function () {
-      var self = this;
-      this.raf = requestAnimationFrame(function () {
-        if (!self.running) return;
-        var leftMs = self.endAt - performance.now();
-        var ratio = clamp(leftMs / self.total, 0, 1);
-        self.render(ratio);
-        if (leftMs <= 0) {
-          self.running = false; self.left = 0;
-          var cb = self.onEnd; self.onEnd = null;
-          if (cb) cb();
-          return;
-        }
-        self.loop();
-      });
-    },
-    render: function (ratio) {
-      el.bar.style.transform = 'scaleX(' + ratio + ')';
-      var low = ratio < 0.28;
-      el.track.classList.toggle('low', low);
-      if (low) {
-        var now = performance.now();
-        if (now - this.lastTick > 420) { this.lastTick = now; Sfx.tick(); }
-      }
-      if (typeof syncItems === 'function') syncItems();
-    },
-    stop: function () {
-      cancelAnimationFrame(this.raf);
-      this.raf = 0; this.running = false;
-    },
-    /** アプリ切替やポーズで止める（残り時間を保持） */
-    hold: function () {
-      if (!this.running) return;
-      this.left = Math.max(0, this.endAt - performance.now());
-      this.stop();
-    },
-    release: function () {
-      if (this.running || this.left <= 0 || !this.onEnd) return;
-      this.endAt = performance.now() + this.left;
-      this.running = true;
-      this.loop();
-    },
-    /** アイテムで時間を足す。上限は満タンまで */
-    add: function (ms) {
-      if (this.left <= 0 && !this.running) return;
-      if (this.running) {
-        var leftMs = Math.min(this.total, (this.endAt - performance.now()) + ms);
-        this.endAt = performance.now() + leftMs;
-      } else {
-        this.left = Math.min(this.total, this.left + ms);
-      }
-    },
-    ratio: function () {
-      var leftMs = this.running ? this.endAt - performance.now() : this.left;
-      return clamp(leftMs / (this.total || 1), 0, 1);
-    }
-  };
-
-  /* ── Game ────────────────────────────────────────────────────────────── */
-  var FOES = ['👾', '🦇', '🐍', '🐺', '👹', '😈', '🐉', '☠️'];
-  var SKIES = [
-    ['#3a5f96', '#8fb7d8'], ['#8a5a7a', '#f0a56a'], ['#1a2447', '#41558a'],
-    ['#0b1024', '#2a1c46'], ['#2a3f6e', '#e0a05a']
-  ];
-  var S = null;
-  var pendingTimer = 0;
-
-  function schedule(fn, ms) {
-    clearTimeout(pendingTimer);
-    var snapshot = S, round = S.round;
-    pendingTimer = setTimeout(function () {
-      if (S !== snapshot || S.round !== round || S.over) return;   // 前の冒険の予約は捨てる
-      fn();
-    }, ms);
-  }
-
-  function showScreen(id) {
-    ['title-screen', 'game-screen', 'result-screen'].forEach(function (s) {
-      document.getElementById(s).classList.toggle('is-active', s === id);
-    });
-    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-  }
-
-  function newGame() {
-    clearTimeout(pendingTimer);
-    Timer.stop();
-    FX.hideToast();
-    S = {
-      round: 0, asked: 0, distance: 0, level: 1, lives: 3,
-      streak: 0, maxStreak: 0, correct: 0, kills: 0,
-      items: { fifty: 3, time: 3, hint: 3 },
-      recent: [], misses: [],
-      foeHp: 0, foeMax: 0, foeStep: 0,
-      accepting: false, over: false, paused: false, current: null
-    };
-    setSky(1);
-    spawnFoe(true);
-    renderLife(-1);
-    updateHud();
-  }
-
-  function setSky(level) {
-    var s = SKIES[(Math.floor((level - 1) / 3)) % SKIES.length];
-    document.documentElement.style.setProperty('--sky-1', s[0]);
-    document.documentElement.style.setProperty('--sky-2', s[1]);
-  }
-
-  function foeMaxHp() { return clamp(2 + Math.floor(S.level / 3), 2, 6); }
-
-  function spawnFoe(silent) {
-    S.foeMax = foeMaxHp();
-    S.foeHp = S.foeMax;
-    S.foeStep = Math.min(FOES.length - 1, Math.floor(S.kills / 2));
-    el.foeFace.textContent = FOES[S.foeStep];
-    el.foe.classList.remove('dead', 'hit');
-    el.foeHp.style.transform = 'scaleX(1)';
-    if (!silent) {
-      el.foe.classList.remove('spawn');
-      void el.foe.offsetWidth;
-      el.foe.classList.add('spawn');
-    }
-  }
-
-  function clear(node) { while (node.firstChild) node.firstChild.remove(); }
-
-  function renderLife(brokenIndex) {
-    if (el.life.children.length !== 3) {
-      clear(el.life);
-      for (var k = 0; k < 3; k++) {
-        var heart = document.createElement('i');
-        heart.textContent = '❤️';
-        el.life.appendChild(heart);
-      }
-    }
-    for (var i = 0; i < 3; i++) {
-      var node = el.life.children[i];
-      node.classList.toggle('gone', i >= S.lives);
-      node.classList.remove('breaking');
-    }
-    if (brokenIndex >= 0 && el.life.children[brokenIndex]) {
-      el.life.children[brokenIndex].classList.add('breaking');
-    }
-  }
-
-  function bump(node) {
-    node.classList.remove('bump'); void node.offsetWidth; node.classList.add('bump');
-  }
-
-  function updateHud() {
-    el.distance.textContent = S.distance + ' m';
-    el.level.textContent = S.level;
-    el.best.textContent = Math.max(getBest(), S.distance) + ' m';
-    el.streak.hidden = S.streak < 2;
-    el.streak.textContent = '×' + S.streak;
-    el.hero.classList.toggle('combo', S.streak >= 3);
-    el.cFifty.textContent = S.items.fifty;
-    el.cTime.textContent = S.items.time;
-    el.cHint.textContent = S.items.hint;
-    syncItems();
-  }
-
-  /** 残り時間で「時の砂」の可否が変わるので、タイマー描画からも呼ぶ */
-  function syncItems() {
-    if (!S) return;
-    el.fifty.disabled = !S.accepting || S.items.fifty <= 0 || liveWrongChoices().length < 2;
-    el.time.disabled = !S.accepting || S.items.time <= 0 || Timer.ratio() > 0.82;
-    el.hint.disabled = !S.accepting || S.items.hint <= 0;
-  }
-
-  function liveWrongChoices() {
-    return Array.prototype.filter.call(el.choices.children, function (b) {
-      return !b.classList.contains('gone') && b.dataset.answer !== '1';
+  /* Service Worker（オフライン対応 / バージョン更新でキャッシュ刷新） */
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function () {});
     });
   }
-
-  /* ── 出題 ────────────────────────────────────────────────────────────── */
-  function maxDifficulty() {
-    if (S.level < 4) return 1;
-    if (S.level < 8) return 2;
-    if (S.level < 13) return 3;
-    return 4;
-  }
-
-  function drawWord() {
-    var maxD = maxDifficulty();
-    var pool = WORDS.filter(function (w) { return w.d <= maxD; });
-    if (!pool.length) pool = WORDS.slice();
-    // 上のティアを優先して出す（レベルが上がるほど手応えが出る）
-    var top = pool.filter(function (w) { return w.d === maxD; });
-    var target = (top.length && Math.random() < 0.65) ? top : pool;
-    var fresh = target.filter(function (w) { return S.recent.indexOf(w.w) === -1; });
-    if (!fresh.length) fresh = target;
-    var word = pick(fresh);
-    S.recent.push(word.w);
-    if (S.recent.length > Math.max(8, Math.floor(pool.length * 0.6))) S.recent.shift();
-    return word;
-  }
-
-  function nextQuestion() {
-    if (!S || S.over) return;
-    S.round++;
-    S.asked++;
-    S.accepting = true;
-    var round = S.round;
-    var q = drawWord();
-    S.current = q;
-
-    el.word.textContent = q.w;
-    el.word.classList.toggle('long', q.w.length > 11);
-    el.pron.textContent = q.p;
-    el.difficulty.textContent = ['', 'EASY', 'NORMAL', 'HARD', 'MASTER'][q.d] || 'MASTER';
-    el.qcount.textContent = 'Q' + S.asked;
-
-    // 重複した選択肢は落とす（データ不備への保険）
-    var seen = {}, options = [];
-    [q.a].concat(q.x).forEach(function (t) { if (!seen[t]) { seen[t] = 1; options.push(t); } });
-    options = shuffle(options);
-
-    clear(el.choices);
-    options.forEach(function (text, i) {
-      var b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'choice';
-      b.dataset.answer = text === q.a ? '1' : '0';
-      var key = document.createElement('span');
-      key.className = 'key';
-      key.textContent = String(i + 1);
-      var label = document.createElement('span');
-      label.className = 'label';
-      label.textContent = text;
-      b.appendChild(key);
-      b.appendChild(label);
-      b.addEventListener('click', function () { answer(b); });
-      el.choices.appendChild(b);
-    });
-
-    var duration = Math.max(2800, 7000 - (S.level - 1) * 180) + (q.d - 1) * 250;
-    updateHud();
-    Timer.start(duration, function () {
-      if (!S || S.round !== round || !S.accepting) return;
-      onTimeout();
-    });
-  }
-
-  function lockChoices(showAnswer) {
-    S.accepting = false;
-    Array.prototype.forEach.call(el.choices.children, function (b) {
-      b.disabled = true;
-      if (showAnswer && b.dataset.answer === '1') b.classList.add('correct');
-    });
-  }
-
-  /* ── 判定 ────────────────────────────────────────────────────────────── */
-  function answer(button) {
-    if (!S || !S.accepting) return;
-    Timer.stop();
-    var isRight = button.dataset.answer === '1';
-    lockChoices(true);
-    if (isRight) onCorrect(button); else { button.classList.add('wrong'); onMiss('正解は「' + S.current.a + '」'); }
-    updateHud();
-  }
-
-  function onTimeout() {
-    if (!S || !S.accepting) return;
-    lockChoices(true);
-    onMiss('時間切れ　正解は「' + S.current.a + '」');
-    updateHud();
-  }
-
-  function onCorrect(button) {
-    S.correct++;
-    S.streak++;
-    S.maxStreak = Math.max(S.maxStreak, S.streak);
-
-    var crit = S.streak >= 5;
-    var gain = 10 + S.current.d * 4 + Math.min(24, S.streak * 3);
-    var prevLevel = S.level;
-    S.distance += gain;
-
-    Sfx.correct(S.streak);
-    vibrate(18);
-    el.hero.classList.add('attack');
-    el.foe.classList.add('hit');
-    el.stage.classList.add('dash');
-    setTimeout(function () { el.hero.classList.remove('attack'); el.foe.classList.remove('hit'); }, 220);
-    setTimeout(function () { el.stage.classList.remove('dash'); }, 1000);
-
-    var pFoe = FX.at(el.foe);
-    FX.burst(pFoe, ['#ffcf4d', '#fff', '#5be59a'], crit ? 20 : 13);
-    FX.float({ x: pFoe.x, y: pFoe.y - 18 }, '+' + gain + 'm', '#5be59a');
-    if (S.streak >= 3) FX.float({ x: FX.at(el.hero).x, y: FX.at(el.hero).y - 26 }, 'COMBO ×' + S.streak, '#ffcf4d');
-    bump(el.distance);
-
-    // 敵にダメージ
-    S.foeHp -= crit ? 2 : 1;
-    el.foeHp.style.transform = 'scaleX(' + clamp(S.foeHp / S.foeMax, 0, 1) + ')';
-    if (S.foeHp <= 0) defeatFoe();   // 撃破ボーナスも距離に乗るので、レベル判定はこの後
-
-    S.level = Math.floor(S.distance / 100) + 1;
-    if (S.level > prevLevel) levelUp();
-
-    var wait = S.foeHp <= 0 ? 1000 : 780;
-    schedule(function () { nextQuestion(); }, wait);
-  }
-
-  function defeatFoe() {
-    S.kills++;
-    var bonus = 25 + S.level * 3;
-    S.distance += bonus;
-    el.foe.classList.add('dead');
-    Sfx.kill();
-    vibrate([12, 40, 22]);
-    var p = FX.at(el.foe);
-    FX.burst(p, ['#ff5f6d', '#ffcf4d', '#fff', '#5aa9ff'], 24);
-    FX.float({ x: p.x, y: p.y - 30 }, '撃破 +' + bonus + 'm', '#ff9c5b');
-    var snapshot = S;
-    setTimeout(function () { if (S === snapshot && !S.over) spawnFoe(false); }, 460);
-  }
-
-  function levelUp() {
-    setSky(S.level);
-    bump(el.level);
-    Sfx.levelup();
-    FX.banner('LEVEL ' + S.level);
-  }
-
-  function onMiss(message) {
-    S.streak = 0;
-    S.lives--;
-    if (S.current) S.misses.push({ w: S.current.w, a: S.current.a });
-    Sfx.wrong();
-    vibrate([30, 40, 30]);
-    FX.shake();
-    FX.flash();
-    FX.toast(message, 'crimson', 1500);
-    renderLife(S.lives);
-    el.hero.classList.add('hurt');
-    setTimeout(function () { el.hero.classList.remove('hurt'); }, 380);
-    schedule(function () { S.lives <= 0 ? finish() : nextQuestion(); }, 1150);
-  }
-
-  /* ── アイテム ────────────────────────────────────────────────────────── */
-  el.fifty.addEventListener('click', function () {
-    if (!S || !S.accepting || S.items.fifty <= 0) return;
-    var wrongs = liveWrongChoices();
-    if (wrongs.length < 2) return;
-    S.items.fifty--;
-    shuffle(wrongs).slice(0, 2).forEach(function (b) { b.classList.add('gone'); b.disabled = true; });
-    el.fifty.classList.add('used');
-    setTimeout(function () { el.fifty.classList.remove('used'); }, 320);
-    Sfx.ui();
-    FX.toast('巻物：選択肢を2つ消した', 'jade', 1000);
-    updateHud();
-  });
-
-  el.time.addEventListener('click', function () {
-    if (!S || !S.accepting || S.items.time <= 0 || Timer.ratio() > 0.82) return;
-    S.items.time--;
-    Timer.add(Timer.total * 0.4);
-    el.time.classList.add('used');
-    setTimeout(function () { el.time.classList.remove('used'); }, 320);
-    Sfx.tone({ f: 700, f2: 1400, d: 0.25, v: 0.1, type: 'triangle' });
-    FX.toast('時の砂：制限時間が回復', 'jade', 1000);
-    updateHud();
-  });
-
-  el.hint.addEventListener('click', function () {
-    if (!S || !S.accepting || S.items.hint <= 0) return;
-    S.items.hint--;
-    el.hint.classList.add('used');
-    setTimeout(function () { el.hint.classList.remove('used'); }, 320);
-    Sfx.ui();
-    FX.toast(S.current.e, null, 3000);
-    updateHud();
-  });
-
-  /* ── ポーズ ──────────────────────────────────────────────────────────── */
-  function pauseGame() {
-    if (!S || S.over || S.paused || !document.getElementById('game-screen').classList.contains('is-active')) return;
-    S.paused = true;
-    Timer.hold();
-    el.pausePanel.hidden = false;
-  }
-  function resumeGame() {
-    if (!S || !S.paused) return;
-    S.paused = false;
-    el.pausePanel.hidden = true;
-    Sfx.unlock();
-    if (S.accepting) Timer.release();
-  }
-  el.pause.addEventListener('click', pauseGame);
-  el.resume.addEventListener('click', resumeGame);
-  el.quit.addEventListener('click', function () {
-    el.pausePanel.hidden = true;
-    if (S) { S.paused = false; finish(); }
-  });
-  // アプリを切り替えている間に時間切れで即死しないように
-  document.addEventListener('visibilitychange', function () { if (document.hidden) pauseGame(); });
-  window.addEventListener('blur', pauseGame);
-
-  /* ── 結果 ────────────────────────────────────────────────────────────── */
-  function countUp(node, to, suffix) {
-    var from = 0, t0 = performance.now(), dur = 700;
-    function step(now) {
-      var k = clamp((now - t0) / dur, 0, 1);
-      var v = Math.round(from + (to - from) * (1 - Math.pow(1 - k, 3)));
-      node.textContent = v + suffix;
-      if (k < 1) requestAnimationFrame(step);
-    }
-    requestAnimationFrame(step);
-  }
-
-  function finish() {
-    if (!S || S.over) return;
-    S.over = true;
-    S.accepting = false;
-    clearTimeout(pendingTimer);
-    Timer.stop();
-    FX.hideToast();
-    el.hero.classList.remove('combo');
-
-    var best = getBest();
-    var isNew = S.distance > best;
-    if (isNew) Store.set(KEY_BEST, S.distance);
-
-    countUp(el.finalDistance, S.distance, ' m');
-    el.finalLevel.textContent = S.level;
-    el.finalStreak.textContent = S.maxStreak;
-    el.finalCorrect.textContent = S.correct;
-    el.finalKills.textContent = S.kills;
-    el.newBest.hidden = !isNew;
-
-    // 取りこぼした単語（復習用）
-    var uniq = [], seen = {};
-    for (var i = S.misses.length - 1; i >= 0 && uniq.length < 6; i--) {
-      var m = S.misses[i];
-      if (!seen[m.w]) { seen[m.w] = 1; uniq.push(m); }
-    }
-    clear(el.missList);
-    uniq.forEach(function (m) {
-      var li = document.createElement('li');
-      var b = document.createElement('b'); b.textContent = m.w;
-      var s = document.createElement('span'); s.textContent = m.a;
-      li.appendChild(b); li.appendChild(s);
-      el.missList.appendChild(li);
-    });
-    el.missCard.hidden = uniq.length === 0;
-
-    el.titleBest.textContent = getBest() + ' m';
-    showScreen('result-screen');
-    Sfx.over();
-    if (isNew) setTimeout(function () { FX.banner('NEW BEST!'); Sfx.levelup(); }, 600);
-  }
-
-  /* ── 画面遷移・入力 ──────────────────────────────────────────────────── */
-  function startGame() {
-    Sfx.unlock();
-    newGame();
-    showScreen('game-screen');
-    FX.banner('START!');
-    setTimeout(function () { if (S && !S.over) nextQuestion(); }, 700);
-  }
-
-  el.start.addEventListener('click', startGame);
-  el.retry.addEventListener('click', startGame);
-  el.home.addEventListener('click', function () {
-    Sfx.ui();
-    el.titleBest.textContent = getBest() + ' m';
-    showScreen('title-screen');
-  });
-  el.how.addEventListener('click', function () { Sfx.unlock(); Sfx.ui(); el.howPanel.hidden = false; });
-  el.closeHow.addEventListener('click', function () { Sfx.ui(); el.howPanel.hidden = true; });
-
-  function renderSound() {
-    Array.prototype.forEach.call(el.sounds, function (b) {
-      b.textContent = Sfx.on ? '🔊 音あり' : '🔇 音なし';
-      b.setAttribute('aria-pressed', String(Sfx.on));
-    });
-  }
-  Array.prototype.forEach.call(el.sounds, function (b) {
-    b.addEventListener('click', function () {
-      Sfx.on = !Sfx.on;
-      Store.set(KEY_SOUND, Sfx.on ? '1' : '0');
-      renderSound();
-      if (Sfx.on) { Sfx.unlock(); Sfx.ui(); }
-    });
-  });
-
-  el.share.addEventListener('click', async function () {
-    var text = 'WORD QUEST RUN で ' + S.distance + 'm 到達！ レベル' + S.level + '／最大コンボ' + S.maxStreak + '。あなたはどこまで走れる？';
-    var data = { title: 'WORD QUEST RUN', text: text, url: location.href };
-    try {
-      if (navigator.share && (!navigator.canShare || navigator.canShare(data))) { await navigator.share(data); return; }
-      await navigator.clipboard.writeText(text + ' ' + location.href);
-      FX.toast('記録をコピーしました', 'jade', 1400);
-    } catch (e) {
-      if (e && e.name === 'AbortError') return;
-      FX.toast('コピーできませんでした', 'crimson', 1600);
-    }
-  });
-
-  document.addEventListener('keydown', function (e) {
-    var onGame = document.getElementById('game-screen').classList.contains('is-active');
-    if (e.key === 'Escape') { S && S.paused ? resumeGame() : pauseGame(); return; }
-    if (!onGame || !S || !S.accepting || S.paused) return;
-    var n = parseInt(e.key, 10);
-    if (n >= 1 && n <= el.choices.children.length) {
-      e.preventDefault();
-      el.choices.children[n - 1].click();
-    }
-  });
-
-  // 最初のタップで音声を解禁（iOS対策）
-  document.addEventListener('pointerdown', function once() {
-    Sfx.unlock();
-    document.removeEventListener('pointerdown', once);
-  }, { passive: true });
-
-  // ダブルタップズームの抑制（回答ボタン連打で拡大しないように）
-  document.addEventListener('dblclick', function (e) { e.preventDefault(); });
-
-  /* ── 起動 ────────────────────────────────────────────────────────────── */
-  el.titleBest.textContent = getBest() + ' m';
-  renderSound();
-  setSky(1);
-
-  /* single-file build: service worker なし */
-})();
-
 </script>
 </body>
 </html>
