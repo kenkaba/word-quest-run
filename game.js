@@ -33,12 +33,16 @@
   if (!CanvasRenderingContext2D.prototype.roundRect) {
     CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
       r = Math.min(r, Math.abs(w) / 2, Math.abs(h) / 2);
-      this.beginPath();
       this.moveTo(x + r, y); this.arcTo(x + w, y, x + w, y + h, r);
       this.arcTo(x + w, y + h, x, y + h, r); this.arcTo(x, y + h, x, y, r);
       this.arcTo(x, y, x + w, y, r); this.closePath(); return this;
     };
   }
+  /* 角丸矩形は必ずこれを使う。
+     native の roundRect は現在のパスへ「追加」するだけで beginPath しないため、
+     直前に描いた図形と1つのパスとして塗られてしまう（光の柱と答えの板が融合する不具合の原因）。
+     polyfill と native で挙動が変わるクロスブラウザ差も、ここで吸収する。 */
+  function rrect(c, x, y, w, h, r) { c.beginPath(); c.roundRect(x, y, w, h, r); return c; }
 
   /* ── Store ─────────────────────────────────────────────────────────── */
   var Store = {
@@ -94,33 +98,63 @@
     slowmo: function () { this.tone(400, 0.5, 'sine', 0.09, 180); }
   };
 
-  /* ── 世界（ステージ）: 背景が主役 ──────────────────────────────────── */
+  /* ── 色ユーティリティ（空気遠近と陰影の土台） ───────────────────────── */
+  function hex2rgb(h) {
+    if (h[0] !== '#') return [255, 255, 255];
+    h = h.slice(1);
+    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    var n = parseInt(h, 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  function rgbStr(c, a) { return 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + (a == null ? 1 : a) + ')'; }
+  function mixRgb(a, b, t) { return [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)]; }
+  function shade(hexOrRgb, amt) {   // amt>0 明るく / amt<0 暗く
+    var c = Array.isArray(hexOrRgb) ? hexOrRgb.slice() : hex2rgb(hexOrRgb);
+    var t = amt > 0 ? [255, 255, 255] : [0, 0, 0];
+    return mixRgb(c, t, Math.abs(amt));
+  }
+  /* 空気遠近: 奥ほど霞の色へ寄り、彩度とコントラストが落ちる。
+     Art Bible 第5節。全描画要素に例外なく適用する（漏れると図形の貼り付けに見える）。*/
+  var _haze = [255, 255, 255];
+  function setHaze(st) { _haze = hex2rgb(st.haze); }
+  function hazeAmt(z) { return 0.85 * Math.pow(clamp(z, 0, 1), 1.35); }
+  function depth(hexOrRgb, z, alpha) {
+    var c = Array.isArray(hexOrRgb) ? hexOrRgb : hex2rgb(hexOrRgb);
+    return rgbStr(mixRgb(c, _haze, hazeAmt(z)), alpha);
+  }
+
+  /* ── 世界（ステージ）: 背景が主役 / Art Bible 第6節のパレット ──────── */
   var STAGES = [
-    { name: '暁の浮遊遺跡', min: 0,
-      sky: ['#f7c98b', '#e8859b', '#6b4a8f', '#2a1f4d'], sun: '#fff3c4', sunY: 0.30, sunGlow: '#ffcf8a',
-      ground: '#3b2f52', road: '#6c5a92', edge: '#ffd9a0', rune: '#ffe9b8',
-      far: '#5b4478', mid: '#43305c', near: '#2e2043',
-      scen: 'ruin', fog: 'rgba(255,190,150,0.18)', part: '#ffd9a0', aurora: null },
-    { name: '翡翠の魔法森', min: 300,
-      sky: ['#bff0d8', '#6fd6b0', '#2b8f7a', '#0e3d3a'], sun: '#f6ffd9', sunY: 0.22, sunGlow: '#c9ffb0',
-      ground: '#123a2f', road: '#2f6b52', edge: '#a8ffcf', rune: '#dcffe8',
-      far: '#2d7a63', mid: '#1c5546', near: '#12352e',
-      scen: 'tree', fog: 'rgba(160,255,200,0.16)', part: '#b6ffcf', aurora: null },
-    { name: '星霜の大滝', min: 600,
-      sky: ['#cfe8ff', '#7fb6f5', '#3a5fb0', '#141c3f'], sun: '#ffffff', sunY: 0.26, sunGlow: '#bcd8ff',
+    { name: '暁の浮遊遺跡', min: 0, sunX: 0.55, sunY: 0.30,
+      sky: ['#2a1f4d', '#5b3f7d', '#c4738f', '#f2a97e'], haze: '#e0a184',
+      sun: '#fff3c4', sunGlow: '#ffcf8a',
+      ground: '#3c2f5c', road: '#6c5a92', edge: '#ffd9a0', rune: '#ffe9b8',
+      far: '#5b4478', mid: '#4a3568', near: '#2e2043', accent: '#7d5fa8',
+      scen: 'ruin', part: '#ffd9a0', aurora: null },
+    { name: '翡翠の魔法森', min: 300, sunX: -0.5, sunY: 0.22,
+      sky: ['#0e3d3a', '#1d6a58', '#4fae8c', '#8fe3c4'], haze: '#9fdcc2',
+      sun: '#f6ffd9', sunGlow: '#c9ffb0',
+      ground: '#163d33', road: '#2f6b52', edge: '#a8ffcf', rune: '#dcffe8',
+      far: '#2d7a63', mid: '#215c4c', near: '#12352e', accent: '#2f7a63',
+      scen: 'tree', part: '#b6ffcf', aurora: null },
+    { name: '星霜の大滝', min: 600, sunX: 0.4, sunY: 0.26,
+      sky: ['#141c3f', '#2b4a86', '#6d9ad8', '#a9d4ff'], haze: '#b9d8f5',
+      sun: '#ffffff', sunGlow: '#bcd8ff',
       ground: '#1b2a4a', road: '#3d5a8c', edge: '#bfe4ff', rune: '#e6f5ff',
-      far: '#4a6ba8', mid: '#31497a', near: '#1e2c50',
-      scen: 'fall', fog: 'rgba(200,230,255,0.22)', part: '#dff0ff', aurora: null },
-    { name: 'オーロラ雪嶺', min: 1000,
-      sky: ['#0e1b3a', '#173156', '#0c1830', '#050a18'], sun: '#eaf6ff', sunY: 0.18, sunGlow: '#9fd8ff',
-      ground: '#26364f', road: '#4a648a', edge: '#eaf6ff', rune: '#ffffff',
-      far: '#33506f', mid: '#22364f', near: '#16233a',
-      scen: 'crystal', fog: 'rgba(190,225,255,0.18)', part: '#ffffff', aurora: ['#7dffc8', '#7db9ff', '#c98aff'] },
-    { name: '天空神殿', min: 1500,
-      sky: ['#ffe6a8', '#ffb277', '#a35fa0', '#2b1740'], sun: '#fffbe6', sunY: 0.24, sunGlow: '#ffd98a',
+      far: '#4a6ba8', mid: '#37538a', near: '#1e2c50', accent: '#3d5a8c',
+      scen: 'fall', part: '#dff0ff', aurora: null },
+    { name: 'オーロラ雪嶺', min: 1000, sunX: -0.6, sunY: 0.18,
+      sky: ['#050a18', '#0e1b3a', '#1a3358', '#37588a'], haze: '#3f5f8c',
+      sun: '#eaf6ff', sunGlow: '#9fd8ff',
+      ground: '#2b3d55', road: '#4a648a', edge: '#eaf6ff', rune: '#ffffff',
+      far: '#33506f', mid: '#2a4260', near: '#16233a', accent: '#4a648a',
+      scen: 'crystal', part: '#ffffff', aurora: ['#7dffc8', '#7db9ff', '#c98aff'] },
+    { name: '天空神殿', min: 1500, sunX: 0.5, sunY: 0.24,
+      sky: ['#2b1740', '#6b3b6e', '#c98a7a', '#ffcf95'], haze: '#e8b98f',
+      sun: '#fffbe6', sunGlow: '#ffd98a',
       ground: '#4a3550', road: '#8a6a9c', edge: '#ffe9a8', rune: '#fff6d0',
-      far: '#7a5a8f', mid: '#5c4370', near: '#3d2b50',
-      scen: 'temple', fog: 'rgba(255,220,170,0.2)', part: '#ffe9b0', aurora: null }
+      far: '#7a5a8f', mid: '#66497e', near: '#3d2b50', accent: '#8a6a9c',
+      scen: 'temple', part: '#ffe9b0', aurora: null }
   ];
   function stageFor(d) { var s = STAGES[0]; for (var i = 0; i < STAGES.length; i++) if (d >= STAGES[i].min) s = STAGES[i]; return s; }
   function stageIndex(d) { var k = 0; for (var i = 0; i < STAGES.length; i++) if (d >= STAGES[i].min) k = i; return k; }
@@ -227,24 +261,50 @@
       var k = st.name + '|' + W + 'x' + H + '|' + tint;
       if (this.key === k && this.cv) return this.cv;
       var c = this.cv && this.cv.width === Math.round(W * DPR) ? this.cv : document.createElement('canvas');
-      c.width = Math.round(W * DPR); c.height = Math.round(horizonY * DPR + 4);
+      var hh = horizonY + 2 + OVERSCAN;
+      c.width = Math.round(W * DPR); c.height = Math.round(hh * DPR + 4);
       var g = c.getContext('2d');
       g.setTransform(DPR, 0, 0, DPR, 0, 0);
-      var hh = horizonY + 2;
+      // 4段グラデーション: 天頂 → 上空 → 地平上 → 地平（Art Bible 第8節）
       var grd = g.createLinearGradient(0, 0, 0, hh);
-      grd.addColorStop(0, st.sky[3]); grd.addColorStop(0.42, st.sky[2]);
-      grd.addColorStop(0.74, st.sky[1]); grd.addColorStop(1, st.sky[0]);
+      grd.addColorStop(0, st.sky[0]); grd.addColorStop(0.40, st.sky[1]);
+      grd.addColorStop(0.74, st.sky[2]); grd.addColorStop(1, st.sky[3]);
       g.fillStyle = grd; g.fillRect(0, 0, W, hh);
-      // 星
-      if (st.sky[3] === '#050a18' || st.sky[3] === '#2a1f4d' || st.sky[3] === '#141c3f' || st.sky[3] === '#2b1740') {
-        g.fillStyle = '#fff';
-        for (var i = 0; i < 90; i++) {
-          var sx = (i * 97.13) % W, sy = (i * 53.7) % (hh * 0.62);
-          g.globalAlpha = 0.15 + ((i * 37) % 60) / 100;
-          g.fillRect(sx, sy, 1.6, 1.6);
+
+      // 星（夜空側のステージのみ）
+      var zen = hex2rgb(st.sky[0]);
+      if (zen[0] + zen[1] + zen[2] < 220) {
+        for (var i = 0; i < 110; i++) {
+          var sx = (i * 97.13) % W, sy = (i * 53.7) % (hh * 0.55);
+          var tw = 0.12 + ((i * 37) % 70) / 100;
+          g.globalAlpha = tw * (1 - sy / (hh * 0.75));
+          g.fillStyle = '#fff';
+          var r = ((i * 17) % 10) < 2 ? 1.9 : 1.2;
+          g.fillRect(sx, sy, r, r);
         }
         g.globalAlpha = 1;
       }
+
+      // 層状の雲（丸い塊・Art Bible 形言語）
+      var cl = hex2rgb(st.sky[2]);
+      for (var b = 0; b < 3; b++) {
+        var cy = hh * (0.42 + b * 0.14);
+        g.globalAlpha = 0.16 - b * 0.03;
+        g.fillStyle = rgbStr(shade(cl, 0.35));
+        for (var q = 0; q < 5; q++) {
+          var cx2 = ((q * 271 + b * 133) % (W + 200)) - 100;
+          var rw = 70 + ((q * 53 + b * 29) % 90);
+          g.beginPath(); g.ellipse(cx2, cy, rw, rw * 0.20, 0, 0, 7); g.fill();
+        }
+      }
+      g.globalAlpha = 1;
+
+      // 地平の霞の帯（空気遠近の受け皿）
+      var hz = g.createLinearGradient(0, hh - hh * 0.26, 0, hh);
+      hz.addColorStop(0, rgbStr(hex2rgb(st.haze), 0));
+      hz.addColorStop(1, rgbStr(hex2rgb(st.haze), 0.75));
+      g.fillStyle = hz; g.fillRect(0, hh - hh * 0.26, W, hh * 0.26);
+
       this.cv = c; this.key = k; return c;
     }
   };
@@ -281,6 +341,7 @@
       q: null, chosen: null, correctLane: 1, blocked: {},
       tQ: 3.4, tLeft: 3.4,
       charLane: 1, charX: 0, run: 0, speed: 1, bob: 0,
+      lagX: 0, lagY: 0, camX: 0, camDip: 0, lastPlant: -1, squash: 1,
       scroll: 0, worldZ: 0, bend: 0, bendT: 0,
       shake: 0, timeScale: 1, slowT: 0,
       resolveT: 0, kind: '', move: '',
@@ -293,6 +354,7 @@
     };
     P.length = 0;
     G.charX = W / 2;
+    G.lagX = G.charX; G.camX = G.charX;   // 起動直後にカメラが飛ばないよう一致させる
     updateHints(); updateHud();
     nextQuestion();
   }
@@ -464,6 +526,11 @@
 
   /* ── 道の形状（うねる一本道） ──────────────────────────────────────── */
   function scaleAt(z) { return 1 / (1 + z * DEPTH); }
+  // 速いほど遠近を強めて加速感を出す（FOV変化の代替 / Benchmark 第2項）
+  function updateFov(dt) {
+    var target = 6.2 + clamp((G.speed - 1) * 1.1, 0, 1.3);
+    DEPTH = lerp(DEPTH, target, clamp(dt * 2.5, 0, 1));
+  }
   function roadY(z) { return horizonY + (H - horizonY) * scaleAt(z); }
   function roadHW(z) { return roadHalfBottom * scaleAt(z); }
   function bendAt(z) {
@@ -502,9 +569,30 @@
     G.bendT += d * 0.32 * run;
     G.bend = Math.sin(G.bendT) * 0.55 + Math.sin(G.bendT * 0.47 + 1.3) * 0.35;
 
+    updateFov(dt);
+
     // 主人公の横移動
     var tx = laneX(G.charLane, 0.05);
     G.charX = lerp(G.charX, tx, clamp(d * 11, 0, 1));
+    // フォロースルー用の遅延値（本体より遅く追う）と、カメラの追従遅延
+    G.lagX = lerp(G.lagX, G.charX, clamp(d * 5.5, 0, 1));
+    G.lagY = lerp(G.lagY, G.bob, clamp(d * 4.5, 0, 1));
+    G.camX = lerp(G.camX, G.charX, clamp(d * 3.2, 0, 1));
+
+    // 接地の瞬間: 土煙とカメラの沈み込み（走行の証拠 / Benchmark 第11項）
+    var plantPhase = Math.floor(G.run / Math.PI);
+    if (plantPhase !== G.lastPlant) {
+      G.lastPlant = plantPhase;
+      G.camDip = 3.2;
+      var fy = charY();
+      for (var pi = 0; pi < 3; pi++) {
+        spawn('dust', G.charX + rf(-9, 9), fy + 30, {
+          vx: rf(-46, 46), vy: rf(-34, -8), g: 150, life: rf(0.28, 0.5),
+          r: rf(2.4, 5), c: 'rgba(255,255,255,0.42)'
+        });
+      }
+    }
+    G.camDip = lerp(G.camDip, 0, clamp(dt * 9, 0, 1));
 
     // 残像トレイル
     G.trail.push({ x: G.charX, y: charY(), a: 1 });
@@ -567,14 +655,21 @@
     if (frac < 0.28) el.word.classList.add('urgent'); else el.word.classList.remove('urgent');
   }
 
-  function charY() { return H * 0.78 + G.bob; }
+  // 足元を画面下へ沈めない（character-motion-camera-director の規則: 68〜75%）
+  function charY() { return H * 0.72 + G.bob + (G.camDip || 0); }
 
   /* ── 描画 ──────────────────────────────────────────────────────────── */
   function render() {
     var st = stageFor(G.dist);
+    setHaze(st);                                  // 空気遠近の基準色をこのフレームへ適用
     ctx.save();
-    var sx = 0, sy = G.bob * 0.5;
+    // カメラは剛体追従しない。横移動を遅れて追い、世界を逆方向へわずかに流す。
+    var sx = -(G.charX - G.camX) * 0.22;
+    var sy = G.bob * 0.5 + (G.camDip || 0) * 0.6;
     if (G.shake > 0) { sx += rf(-1, 1) * 16 * G.shake; sy += rf(-1, 1) * 16 * G.shake; }
+    // 端に未描画の隙間が出ないよう、移動量はオーバースキャン内に必ず収める
+    var lim = OVERSCAN - 4;
+    sx = clamp(sx, -lim, lim); sy = clamp(sy, -lim, lim);
     ctx.translate(sx, sy);
 
     drawSky(st);
@@ -599,7 +694,7 @@
   function drawSky(st) {
     var s = Sky.get(st, 0);
     // 画面揺れで端に未描画の隙間が出ないよう、少し外側まで広げて描く
-    ctx.drawImage(s, -OVERSCAN, -OVERSCAN, W + OVERSCAN * 2, horizonY + 2 + OVERSCAN);
+    ctx.drawImage(s, -OVERSCAN, -OVERSCAN, W + OVERSCAN * 2, horizonY + 2 + OVERSCAN * 2);
     // オーロラ
     if (st.aurora) {
       for (var a = 0; a < st.aurora.length; a++) {
@@ -617,170 +712,255 @@
   }
 
   function drawCelestial(st) {
-    var cx = W * 0.72 + G.bend * -40, cy = horizonY * st.sunY;
-    Sprites.drawGlow(cx, cy, W * 0.42, st.sunGlow, 0.5);
+    var cx = W * (0.5 + st.sunX * 0.34) + G.bend * -40, cy = horizonY * st.sunY;
+    Sprites.drawGlow(cx, cy, W * 0.50, st.sunGlow, 0.45);   // ブルーム
+    Sprites.drawGlow(cx, cy, W * 0.20, st.sun, 0.55);
     ctx.fillStyle = st.sun;
-    ctx.beginPath(); ctx.arc(cx, cy, W * 0.075, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy, W * 0.068, 0, 7); ctx.fill();
   }
 
-  // 遠景シルエット（浮遊島・山・神殿）
+  // 最遠景の山（空気遠近が最も強い層 = ほぼ霞に溶ける）
   function drawFarLayer(st) {
-    var off = (G.worldZ * 0.6) % 300;
-    ctx.fillStyle = st.far; ctx.globalAlpha = 0.85;
-    for (var i = -1; i < W / 300 + 2; i++) {
-      var bx = i * 300 - off + G.bend * -60;
+    var off = (G.worldZ * 0.45) % 340;
+    var lit = st.sunX;
+    for (var i = -1; i < W / 340 + 2; i++) {
+      var bx = i * 340 - off + G.bend * -50;
+      var peaks = [[0, 0], [80, -132], [150, -54], [230, -168], [300, -70], [340, 0]];
+      // 陰の面
+      ctx.fillStyle = depth(shade(st.far, -0.18), 0.92);
+      ctx.beginPath(); ctx.moveTo(bx, horizonY);
+      for (var p = 1; p < peaks.length; p++) ctx.lineTo(bx + peaks[p][0], horizonY + peaks[p][1]);
+      ctx.closePath(); ctx.fill();
+      // 光の当たる面（光源側の斜面だけ明るく）
+      ctx.fillStyle = depth(shade(st.far, 0.16), 0.90);
       ctx.beginPath();
-      ctx.moveTo(bx, horizonY);
-      ctx.lineTo(bx + 70, horizonY - 120);
-      ctx.lineTo(bx + 140, horizonY - 46);
-      ctx.lineTo(bx + 210, horizonY - 150);
-      ctx.lineTo(bx + 300, horizonY);
+      ctx.moveTo(bx + 230, horizonY - 168);
+      ctx.lineTo(bx + 230 + (lit > 0 ? 70 : -80), horizonY - (lit > 0 ? 70 : 54));
+      ctx.lineTo(bx + 230, horizonY);
       ctx.closePath(); ctx.fill();
     }
-    ctx.globalAlpha = 1;
-    // 浮遊島
-    var fo = (G.worldZ * 0.9) % 420;
-    for (var j = -1; j < W / 420 + 2; j++) {
-      var ix = j * 420 - fo + 60 + G.bend * -90;
-      var iy = horizonY - 150 - ((j * 37) % 60);
-      ctx.globalAlpha = 0.7; ctx.fillStyle = st.mid;
-      ctx.beginPath();
-      ctx.ellipse(ix, iy, 66, 16, 0, 0, 7); ctx.fill();
-      ctx.beginPath(); ctx.moveTo(ix - 52, iy + 6); ctx.lineTo(ix, iy + 62); ctx.lineTo(ix + 52, iy + 6); ctx.closePath(); ctx.fill();
-      ctx.globalAlpha = 0.9; ctx.fillStyle = st.edge;
-      ctx.fillRect(ix - 26, iy - 30, 5, 30); ctx.fillRect(ix + 20, iy - 30, 5, 30);
-      ctx.fillRect(ix - 30, iy - 34, 60, 5);
-      ctx.globalAlpha = 1;
+    // 遠景の浮遊島（上面は平ら・下面は結晶的に尖る / Art Bible 第7節）
+    var fo = (G.worldZ * 0.85) % 430;
+    for (var j = -1; j < W / 430 + 2; j++) {
+      var ix = j * 430 - fo + 70 + G.bend * -80;
+      var iy = horizonY - 156 - ((j * 37) % 64);
+      var z = 0.78;
+      ctx.fillStyle = depth(shade(st.mid, 0.10), z);
+      ctx.beginPath(); ctx.ellipse(ix, iy, 68, 15, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = depth(shade(st.near, -0.10), z);
+      ctx.beginPath(); ctx.moveTo(ix - 54, iy + 5); ctx.lineTo(ix - 8, iy + 70); ctx.lineTo(ix + 54, iy + 5); ctx.closePath(); ctx.fill();
+      // 縁の発光
+      ctx.strokeStyle = depth(st.edge, z * 0.7, 0.55); ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.ellipse(ix, iy, 68, 15, 0, Math.PI, 0); ctx.stroke();
+      // 遺跡の柱（鋭い結晶側・上部が欠けている）
+      ctx.fillStyle = depth(st.accent, z);
+      ctx.fillRect(ix - 28, iy - 34, 6, 34); ctx.fillRect(ix + 20, iy - 27, 6, 27);
+      ctx.fillStyle = depth(shade(st.accent, 0.2), z);
+      ctx.fillRect(ix - 33, iy - 38, 62, 5);
     }
   }
 
+  // 遠景の大建築・大滝
   function drawMidLayer(st) {
-    var off = (G.worldZ * 1.6) % 260;
-    ctx.fillStyle = st.mid; ctx.globalAlpha = 0.9;
-    for (var i = -1; i < W / 260 + 2; i++) {
-      var bx = i * 260 - off + G.bend * -120;
+    var off = (G.worldZ * 1.5) % 280;
+    for (var i = -1; i < W / 280 + 2; i++) {
+      var bx = i * 280 - off + G.bend * -110;
+      ctx.fillStyle = depth(shade(st.mid, -0.10), 0.66);
       ctx.beginPath();
       ctx.moveTo(bx, horizonY + 2);
-      ctx.lineTo(bx + 55, horizonY - 62);
-      ctx.lineTo(bx + 120, horizonY - 20);
-      ctx.lineTo(bx + 190, horizonY - 78);
-      ctx.lineTo(bx + 260, horizonY + 2);
+      ctx.lineTo(bx + 60, horizonY - 70);
+      ctx.lineTo(bx + 128, horizonY - 24);
+      ctx.lineTo(bx + 200, horizonY - 86);
+      ctx.lineTo(bx + 280, horizonY + 2);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = depth(shade(st.mid, 0.14), 0.66);
+      ctx.beginPath();
+      ctx.moveTo(bx + 200, horizonY - 86);
+      ctx.lineTo(bx + 200 + (st.sunX > 0 ? 80 : -72), horizonY + 2);
+      ctx.lineTo(bx + 200, horizonY + 2);
       ctx.closePath(); ctx.fill();
     }
-    ctx.globalAlpha = 1;
-    // 大滝ステージは滝を描く
     if (st.scen === 'fall') {
-      var fx = W * 0.5 + G.bend * -150;
-      ctx.globalAlpha = 0.30; ctx.fillStyle = '#dff0ff';
-      ctx.fillRect(fx - 76, horizonY - 128, 152, 130);
-      ctx.globalAlpha = 0.22;
-      for (var s = 0; s < 8; s++) {
-        var sxx = fx - 68 + s * 18;
-        ctx.fillRect(sxx, horizonY - 128 + ((G.worldZ * 40 + s * 30) % 128) - 128, 4, 128);
+      var fx = W * 0.5 + G.bend * -140, z = 0.6;
+      ctx.fillStyle = depth('#dff0ff', z, 0.42);
+      ctx.fillRect(fx - 78, horizonY - 132, 156, 134);
+      ctx.globalAlpha = 0.22; ctx.fillStyle = '#fff';
+      for (var s = 0; s < 9; s++) {
+        var sxx = fx - 70 + s * 17;
+        ctx.fillRect(sxx, horizonY - 132 + ((G.worldZ * 44 + s * 31) % 132) - 132, 3.5, 132);
       }
       ctx.globalAlpha = 1;
-      Sprites.drawGlow(fx, horizonY, 110, '#dff0ff', 0.18);
+      Sprites.drawGlow(fx, horizonY, 118, '#dff0ff', 0.20);
     }
   }
 
   function drawGround(st) {
-    ctx.fillStyle = st.ground;
+    // 地面も奥ほど霞へ溶ける（縦グラデで空気遠近を表現）
+    var g = ctx.createLinearGradient(0, horizonY, 0, H);
+    g.addColorStop(0, depth(st.ground, 0.85));
+    g.addColorStop(0.35, depth(st.ground, 0.34));
+    g.addColorStop(1, depth(shade(st.ground, -0.12), 0));
+    ctx.fillStyle = g;
     ctx.fillRect(-OVERSCAN, horizonY, W + OVERSCAN * 2, H - horizonY + OVERSCAN);
-    // 地面の横縞（流れる）
-    ctx.fillStyle = st.near; ctx.globalAlpha = 0.5;
-    for (var i = 0; i < 16; i++) {
-      var z = ((i + (G.scroll)) / 16);
-      var y0 = roadY(z), y1 = roadY(Math.min(z + 0.03, 1));
-      if (i % 2 === 0) ctx.fillRect(-OVERSCAN, y1, W + OVERSCAN * 2, Math.max(1, y0 - y1));
+    // 質感: 流れる横縞（ベタ塗り回避 / Benchmark 第9項）
+    for (var i = 0; i < 22; i++) {
+      var z = ((i + G.scroll) / 22);
+      var y0 = roadY(z), y1 = roadY(Math.min(z + 0.028, 1));
+      if (i % 2) continue;
+      ctx.fillStyle = depth(shade(st.near, -0.06), z, 0.34 * (1 - z * 0.7));
+      ctx.fillRect(-OVERSCAN, y1, W + OVERSCAN * 2, Math.max(1, y0 - y1));
     }
-    ctx.globalAlpha = 1;
+  }
+
+  function roadPath(segs, inset) {
+    var i, z, y, hw, bx;
+    ctx.beginPath();
+    for (i = 0; i <= segs; i++) { z = i / segs; y = roadY(z); hw = roadHW(z) - (inset || 0) * scaleAt(z); bx = W / 2 + bendAt(z); (i === 0) ? ctx.moveTo(bx - hw, y) : ctx.lineTo(bx - hw, y); }
+    for (i = segs; i >= 0; i--) { z = i / segs; y = roadY(z); hw = roadHW(z) - (inset || 0) * scaleAt(z); bx = W / 2 + bendAt(z); ctx.lineTo(bx + hw, y); }
+    ctx.closePath();
   }
 
   function drawRoad(st) {
-    // 台形をセグメント分割して曲げる
-    var segs = 26;
-    ctx.beginPath();
-    var i, z, y, hw, bx;
-    for (i = 0; i <= segs; i++) { z = i / segs; y = roadY(z); hw = roadHW(z); bx = W / 2 + bendAt(z); (i === 0) ? ctx.moveTo(bx - hw, y) : ctx.lineTo(bx - hw, y); }
-    for (i = segs; i >= 0; i--) { z = i / segs; y = roadY(z); hw = roadHW(z); bx = W / 2 + bendAt(z); ctx.lineTo(bx + hw, y); }
-    ctx.closePath();
+    var segs = 30, i, z;
+    // 路面（奥は霞、手前は素の色）
+    roadPath(segs, 0);
     var grd = ctx.createLinearGradient(0, horizonY, 0, H);
-    grd.addColorStop(0, st.mid); grd.addColorStop(1, st.road);
+    grd.addColorStop(0, depth(st.road, 0.85));
+    grd.addColorStop(0.3, depth(st.road, 0.34));
+    grd.addColorStop(1, depth(shade(st.road, 0.06), 0));
     ctx.fillStyle = grd; ctx.fill();
 
-    // 道の縁の発光ライン
-    ctx.strokeStyle = st.edge; ctx.lineWidth = 2.5; ctx.globalAlpha = 0.65;
-    for (var side = -1; side <= 1; side += 2) {
-      ctx.beginPath();
-      for (i = 0; i <= segs; i++) { z = i / segs; y = roadY(z); hw = roadHW(z); bx = W / 2 + bendAt(z); (i === 0) ? ctx.moveTo(bx + side * hw, y) : ctx.lineTo(bx + side * hw, y); }
-      ctx.stroke();
+    // 路面の質感: 帯状のムラ
+    ctx.save(); ctx.clip();
+    for (i = 0; i < 26; i++) {
+      z = ((i + G.scroll * 1.4) / 26) % 1;
+      var yy = roadY(z), hh = Math.max(1, roadY(z) - roadY(Math.min(z + 0.02, 1)));
+      ctx.fillStyle = depth(shade(st.road, (i % 3 === 0) ? 0.07 : -0.05), z, 0.30 * (1 - z * 0.6));
+      ctx.fillRect(0, yy - hh, W, hh);
     }
-    ctx.globalAlpha = 1;
+    // 光源側がわずかに明るい路面
+    var sg = ctx.createLinearGradient(W / 2 - W * 0.5, 0, W / 2 + W * 0.5, 0);
+    sg.addColorStop(0, rgbStr(hex2rgb(st.sun), st.sunX < 0 ? 0.10 : 0));
+    sg.addColorStop(1, rgbStr(hex2rgb(st.sun), st.sunX > 0 ? 0.10 : 0));
+    ctx.fillStyle = sg; ctx.fillRect(0, horizonY, W, H - horizonY);
+    ctx.restore();
 
+    // 縁の発光（奥は霞で弱く）
+    ctx.lineWidth = 2.6;
+    for (var side = -1; side <= 1; side += 2) {
+      for (i = 0; i < segs; i++) {
+        z = i / segs;
+        var z2 = (i + 1) / segs;
+        ctx.strokeStyle = depth(st.edge, z * 0.85, 0.72 * (1 - z * 0.55));
+        ctx.beginPath();
+        ctx.moveTo(W / 2 + bendAt(z) + side * roadHW(z), roadY(z));
+        ctx.lineTo(W / 2 + bendAt(z2) + side * roadHW(z2), roadY(z2));
+        ctx.stroke();
+      }
+    }
     // レーン境界のルーン（流れる）
-    ctx.globalAlpha = 0.5; ctx.strokeStyle = st.rune; ctx.lineWidth = 2;
+    ctx.lineWidth = 2;
     for (var b = -1; b <= 1; b += 2) {
-      for (var s = 0; s < 12; s++) {
-        var z0 = ((s + G.scroll) / 12) % 1, z1 = z0 + 0.028;
-        if (z1 > 0.98) continue;
-        var x0 = W / 2 + bendAt(z0) + b * roadHW(z0) * 0.32;
-        var x1 = W / 2 + bendAt(z1) + b * roadHW(z1) * 0.32;
-        ctx.beginPath(); ctx.moveTo(x0, roadY(z0)); ctx.lineTo(x1, roadY(z1)); ctx.stroke();
+      for (var s = 0; s < 14; s++) {
+        var z0 = ((s + G.scroll) / 14) % 1, z1 = z0 + 0.026;
+        if (z1 > 0.97) continue;
+        ctx.strokeStyle = depth(st.rune, z0 * 0.9, 0.55 * (1 - z0 * 0.6));
+        ctx.beginPath();
+        ctx.moveTo(W / 2 + bendAt(z0) + b * roadHW(z0) * 0.32, roadY(z0));
+        ctx.lineTo(W / 2 + bendAt(z1) + b * roadHW(z1) * 0.32, roadY(z1));
+        ctx.stroke();
       }
     }
     ctx.globalAlpha = 1;
   }
 
-  /* 道の脇を流れる景色（速度感の主役） */
+  /* 道の脇を流れる景色（速度感の主役）。奥から手前へ、必ず奥→手前の順に描く */
   function drawScenery(st) {
-    var count = 12;
+    var count = 16, items = [];
     for (var i = 0; i < count; i++) {
-      // 手前へ流れてくるように z を進行方向と逆に送る
       var z = ((i / count) - (G.worldZ * 0.05)) % 1; if (z < 0) z += 1;
       if (z > 0.97) continue;
-      var s = scaleAt(z), y = roadY(z), hw = roadHW(z);
+      items.push({ z: z, i: i });
+    }
+    items.sort(function (a, b) { return b.z - a.z; });     // 奥から描く
+    for (var k = 0; k < items.length; k++) {
+      var z2 = items[k].z, idx = items[k].i;
+      var s = scaleAt(z2), y = roadY(z2), hw = roadHW(z2);
       for (var side = -1; side <= 1; side += 2) {
-        var x = W / 2 + bendAt(z) + side * hw * (1.25 + ((i * 13) % 5) * 0.08);
-        var h = (110 + ((i * 29) % 70)) * s * 3.2;
-        drawProp(st, x, y, h, s, i + side);
+        var x = W / 2 + bendAt(z2) + side * hw * (1.22 + ((idx * 13) % 5) * 0.09);
+        var h = (110 + ((idx * 29) % 70)) * s * 3.2;
+        drawProp(st, x, y, h, s, idx + side, z2);
       }
     }
   }
 
-  function drawProp(st, x, y, h, s, seed) {
+  /* 脇の props。光源方向に従って明暗を分け、逆光側にリムライトを置き、
+     接地影を落とし、深度で霞へ溶かす（Art Bible 第4・5節）。 */
+  function drawProp(st, x, y, h, s, seed, z) {
     var w = h * 0.26;
-    ctx.globalAlpha = clamp(s * 3.2, 0, 1);
+    var lit = st.sunX >= 0 ? 1 : -1;          // 明るい面の向き
+    var a = clamp(s * 3.4, 0, 1);
+    ctx.globalAlpha = a;
+
+    // 接地影
+    ctx.fillStyle = rgbStr([0, 0, 0], 0.26 * a * (1 - z * 0.7));
+    ctx.beginPath(); ctx.ellipse(x, y, w * 0.72, w * 0.20, 0, 0, 7); ctx.fill();
+
+    function body(darkC, litC, drawShape) {
+      ctx.fillStyle = depth(darkC, z); drawShape(0);
+      ctx.save();
+      drawShape(1); ctx.clip();
+      ctx.fillStyle = depth(litC, z);
+      ctx.fillRect(lit > 0 ? x : x - w, y - h, w, h);   // 光源側の半分だけ明るく
+      ctx.restore();
+    }
+
     if (st.scen === 'tree') {
-      ctx.fillStyle = '#20402f';
-      ctx.fillRect(x - w * 0.13, y - h * 0.55, w * 0.26, h * 0.55);
-      ctx.fillStyle = '#2f7a52';
-      ctx.beginPath(); ctx.ellipse(x, y - h * 0.66, w * 0.9, h * 0.34, 0, 0, 7); ctx.fill();
-      ctx.fillStyle = '#49a86e';
-      ctx.beginPath(); ctx.ellipse(x - w * 0.2, y - h * 0.78, w * 0.55, h * 0.22, 0, 0, 7); ctx.fill();
-      if (s > 0.14) Sprites.drawGlow(x, y - h * 0.66, h * 0.22, '#b6ffcf', 0.16);
+      ctx.fillStyle = depth(shade(st.near, -0.10), z);
+      ctx.fillRect(x - w * 0.11, y - h * 0.55, w * 0.22, h * 0.55);
+      body(shade(st.accent, -0.22), shade(st.accent, 0.22), function () {
+        ctx.beginPath(); ctx.ellipse(x, y - h * 0.66, w * 0.92, h * 0.34, 0, 0, 7);
+        if (arguments[0] !== 1) ctx.fill();
+      });
+      // 上の樹冠（丸い塊を重ねる）
+      ctx.fillStyle = depth(shade(st.accent, 0.30), z);
+      ctx.beginPath(); ctx.ellipse(x + lit * w * 0.22, y - h * 0.80, w * 0.52, h * 0.20, 0, 0, 7); ctx.fill();
+      // リムライト（逆光側の縁）
+      ctx.strokeStyle = depth(st.edge, z, 0.55 * a); ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.ellipse(x, y - h * 0.66, w * 0.92, h * 0.34, 0, Math.PI * (lit > 0 ? 0.35 : 0.15), Math.PI * (lit > 0 ? 1.15 : 0.95)); ctx.stroke();
     } else if (st.scen === 'crystal') {
-      ctx.fillStyle = '#8fd6ff';
-      ctx.beginPath(); ctx.moveTo(x, y - h * 0.9); ctx.lineTo(x + w * 0.4, y - h * 0.2); ctx.lineTo(x, y); ctx.lineTo(x - w * 0.4, y - h * 0.2); ctx.closePath(); ctx.fill();
-      ctx.fillStyle = '#dff2ff';
-      ctx.beginPath(); ctx.moveTo(x, y - h * 0.9); ctx.lineTo(x + w * 0.18, y - h * 0.25); ctx.lineTo(x, y - h * 0.05); ctx.closePath(); ctx.fill();
-      if (s > 0.14) Sprites.drawGlow(x, y - h * 0.5, h * 0.3, '#bfe4ff', 0.2);
+      ctx.fillStyle = depth(shade(st.accent, -0.18), z);
+      ctx.beginPath(); ctx.moveTo(x, y - h * 0.92); ctx.lineTo(x + w * 0.42, y - h * 0.2); ctx.lineTo(x, y); ctx.lineTo(x - w * 0.42, y - h * 0.2); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = depth(shade(st.edge, -0.05), z);
+      ctx.beginPath(); ctx.moveTo(x, y - h * 0.92); ctx.lineTo(x + lit * w * 0.20, y - h * 0.26); ctx.lineTo(x, y - h * 0.04); ctx.closePath(); ctx.fill();
+      if (s > 0.12) Sprites.drawGlow(x, y - h * 0.5, h * 0.26, st.edge, 0.22 * a);
     } else if (st.scen === 'temple') {
-      ctx.fillStyle = st.near;
+      ctx.fillStyle = depth(shade(st.near, -0.12), z);
       ctx.fillRect(x - w * 0.32, y - h * 0.85, w * 0.64, h * 0.85);
-      ctx.fillStyle = st.edge; ctx.globalAlpha *= 0.75;
-      ctx.fillRect(x - w * 0.42, y - h * 0.92, w * 0.84, h * 0.08);
-      ctx.globalAlpha = clamp(s * 3.2, 0, 1);
-      if (s > 0.14) Sprites.drawGlow(x, y - h * 0.5, h * 0.26, st.edge, 0.16);
+      ctx.fillStyle = depth(shade(st.near, 0.18), z);
+      ctx.fillRect(lit > 0 ? x : x - w * 0.32, y - h * 0.85, w * 0.32, h * 0.85);
+      ctx.fillStyle = depth(shade(st.accent, 0.14), z);
+      ctx.fillRect(x - w * 0.44, y - h * 0.93, w * 0.88, h * 0.08);
+      ctx.strokeStyle = depth(st.edge, z, 0.5 * a); ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(x - lit * w * 0.32, y - h * 0.85); ctx.lineTo(x - lit * w * 0.32, y); ctx.stroke();
     } else if (st.scen === 'fall') {
-      ctx.fillStyle = st.near;
-      ctx.beginPath(); ctx.moveTo(x - w * 0.5, y); ctx.lineTo(x - w * 0.2, y - h * 0.8); ctx.lineTo(x + w * 0.3, y - h * 0.55); ctx.lineTo(x + w * 0.5, y); ctx.closePath(); ctx.fill();
-      if (s > 0.14) Sprites.drawGlow(x, y - h * 0.4, h * 0.24, '#dff0ff', 0.14);
-    } else { // ruin
-      ctx.fillStyle = st.near;
-      ctx.fillRect(x - w * 0.3, y - h * 0.75, w * 0.6, h * 0.75);
-      ctx.fillStyle = st.mid;
-      ctx.fillRect(x - w * 0.44, y - h * 0.82, w * 0.88, h * 0.09);
-      if (s > 0.14) Sprites.drawGlow(x, y - h * 0.45, h * 0.22, st.edge, 0.14);
+      ctx.fillStyle = depth(shade(st.near, -0.12), z);
+      ctx.beginPath(); ctx.moveTo(x - w * 0.5, y); ctx.lineTo(x - w * 0.18, y - h * 0.82); ctx.lineTo(x + w * 0.32, y - h * 0.56); ctx.lineTo(x + w * 0.5, y); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = depth(shade(st.near, 0.16), z);
+      ctx.beginPath(); ctx.moveTo(x + w * 0.32, y - h * 0.56); ctx.lineTo(x + w * 0.5, y); ctx.lineTo(x + w * 0.05, y); ctx.closePath(); ctx.fill();
+      if (s > 0.12) Sprites.drawGlow(x, y - h * 0.4, h * 0.2, st.edge, 0.14 * a);
+    } else { // ruin: 上部が欠けた柱（鋭い結晶側）
+      ctx.fillStyle = depth(shade(st.near, -0.14), z);
+      ctx.beginPath();
+      ctx.moveTo(x - w * 0.30, y); ctx.lineTo(x - w * 0.26, y - h * 0.72);
+      ctx.lineTo(x + w * 0.10, y - h * 0.82); ctx.lineTo(x + w * 0.30, y - h * 0.66);
+      ctx.lineTo(x + w * 0.30, y); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = depth(shade(st.near, 0.20), z);
+      ctx.fillRect(lit > 0 ? x : x - w * 0.30, y - h * 0.70, w * 0.30, h * 0.70);
+      ctx.fillStyle = depth(shade(st.accent, 0.10), z);
+      ctx.fillRect(x - w * 0.42, y - h * 0.88, w * 0.84, h * 0.08);
+      ctx.strokeStyle = depth(st.edge, z, 0.45 * a); ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(x - lit * w * 0.28, y - h * 0.74); ctx.lineTo(x - lit * w * 0.30, y); ctx.stroke();
     }
     ctx.globalAlpha = 1;
   }
@@ -847,10 +1027,11 @@
       if (hint) glow = '#7dffa8';
 
       // 光の柱: 板の下から、その道の着地点へ向かって細くなる（下ほど淡く溶ける）
-      ctx.globalAlpha = alpha * (hint || (G.phase !== 'ask' && isC) ? 0.34 : 0.16);
+      ctx.globalAlpha = alpha * (hint || (G.phase !== 'ask' && isC) ? 0.46 : 0.26);
       var beam = ctx.createLinearGradient(0, py + ph * 0.5, 0, landY);
       beam.addColorStop(0, glow);
-      beam.addColorStop(1, Sprites.fade(glow, 0));
+      beam.addColorStop(0.65, Sprites.fade(glow, 0.45));
+      beam.addColorStop(1, Sprites.fade(glow, 0.12));
       ctx.fillStyle = beam;
       ctx.beginPath();
       ctx.moveTo(x - pw * 0.30, py + ph * 0.5);
@@ -867,11 +1048,11 @@
 
       // ガラス板
       ctx.fillStyle = 'rgba(10,14,30,0.52)';
-      ctx.roundRect(x - pw / 2, py - ph / 2, pw, ph, 16); ctx.fill();
+      rrect(ctx, x - pw / 2, py - ph / 2, pw, ph, 16); ctx.fill();
       ctx.globalAlpha = alpha * 0.9; ctx.strokeStyle = glow; ctx.lineWidth = 1.6;
-      ctx.roundRect(x - pw / 2, py - ph / 2, pw, ph, 16); ctx.stroke();
+      rrect(ctx, x - pw / 2, py - ph / 2, pw, ph, 16); ctx.stroke();
       ctx.globalAlpha = alpha * 0.16; ctx.fillStyle = '#fff';
-      ctx.roundRect(x - pw / 2 + 4, py - ph / 2 + 3, pw - 8, ph * 0.34, 12); ctx.fill();
+      rrect(ctx, x - pw / 2 + 4, py - ph / 2 + 3, pw - 8, ph * 0.34, 12); ctx.fill();
 
       ctx.globalAlpha = alpha;
       ctx.font = '800 ' + L.fs + 'px -apple-system,"Hiragino Sans",system-ui,sans-serif';
@@ -887,7 +1068,7 @@
     var z = 0.20, x = laneX(G.chest.lane, z), y = roadY(z), s = scaleAt(z);
     var w = 46 * s * 3.4, h = 34 * s * 3.4;
     Sprites.drawGlow(x, y - h * 0.6, w * 1.1, '#ffd76a', 0.4);
-    ctx.fillStyle = '#8a5a2a'; ctx.roundRect(x - w / 2, y - h, w, h, 6); ctx.fill();
+    ctx.fillStyle = '#8a5a2a'; rrect(ctx, x - w / 2, y - h, w, h, 6); ctx.fill();
     ctx.fillStyle = '#ffd76a'; ctx.fillRect(x - w / 2, y - h * 0.62, w, h * 0.16);
     ctx.fillStyle = '#5a3a18'; ctx.fillRect(x - w * 0.07, y - h * 0.72, w * 0.14, h * 0.34);
   }
@@ -913,22 +1094,69 @@
     // うねりに合わせて揺れるが、必ず画面内に収める
     var x = clamp(W / 2 + Math.sin(b.sway) * 18 + bendAt(0.85) * 0.45,
                   size * 0.64, W - size * 0.64);
-    Sprites.drawGlow(x, y - size * 0.2, size * 1.5, '#ff7a8a', 0.35);
-    // 体
-    ctx.fillStyle = '#241a33';
-    ctx.beginPath(); ctx.ellipse(x, y - size * 0.15, size * 0.62, size * 0.55, 0, 0, 7); ctx.fill();
-    // 角
-    ctx.strokeStyle = '#ff9ab0'; ctx.lineWidth = size * 0.07; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(x - size * 0.4, y - size * 0.5); ctx.lineTo(x - size * 0.62, y - size * 0.92); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(x + size * 0.4, y - size * 0.5); ctx.lineTo(x + size * 0.62, y - size * 0.92); ctx.stroke();
-    // 目
-    ctx.fillStyle = '#ffe066';
-    ctx.beginPath(); ctx.ellipse(x - size * 0.22, y - size * 0.22, size * 0.1, size * 0.06, 0, 0, 7); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(x + size * 0.22, y - size * 0.22, size * 0.1, size * 0.06, 0, 0, 7); ctx.fill();
+    /* 魔獣 = 丸い塊 + 鋭い結晶の角（Art Bible 第10節）。
+       色はステージの影色、発光する目だけが差し色。血や破壊は描かない。 */
+    var breathe = 1 + Math.sin(b.sway * 1.4) * 0.03;
+    var bodyC = hex2rgb(st.near), horn = hex2rgb(st.accent);
+
+    // まとわりつく瘴気
+    Sprites.drawGlow(x, y - size * 0.1, size * 1.7, st.accent, 0.22);
+    for (var w = 0; w < 5; w++) {
+      var wa = b.sway * 0.7 + w * 1.25;
+      Sprites.drawGlow(x + Math.cos(wa) * size * 0.75, y - size * 0.1 + Math.sin(wa * 1.3) * size * 0.4,
+        size * 0.30, st.accent, 0.13);
+    }
+
+    // 角（結晶: 太い根元から鋭く尖る。左右非対称で生物感）
+    function hornAt(hx, hy, tx, ty, wdt) {
+      ctx.beginPath();
+      ctx.moveTo(hx - wdt, hy); ctx.lineTo(tx, ty); ctx.lineTo(hx + wdt, hy);
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.fillStyle = rgbStr(shade(horn, -0.10));
+    hornAt(x - size * 0.42, y - size * 0.42, x - size * 0.80, y - size * 1.02, size * 0.10);
+    hornAt(x + size * 0.42, y - size * 0.42, x + size * 0.86, y - size * 0.94, size * 0.10);
+    ctx.fillStyle = rgbStr(shade(horn, 0.18));
+    hornAt(x - size * 0.20, y - size * 0.52, x - size * 0.34, y - size * 0.90, size * 0.055);
+    hornAt(x + size * 0.22, y - size * 0.52, x + size * 0.38, y - size * 0.86, size * 0.055);
+
+    // 体（丸い塊。肩を張らせて威圧感）
+    ctx.save();
+    ctx.translate(x, y - size * 0.15); ctx.scale(1, breathe);
+    var bg = ctx.createRadialGradient(0, -size * 0.25, size * 0.1, 0, 0, size * 0.75);
+    bg.addColorStop(0, rgbStr(shade(bodyC, 0.12)));
+    bg.addColorStop(1, rgbStr(shade(bodyC, -0.55)));
+    ctx.fillStyle = bg;
+    ctx.beginPath();
+    ctx.moveTo(-size * 0.66, size * 0.30);
+    ctx.quadraticCurveTo(-size * 0.74, -size * 0.30, -size * 0.34, -size * 0.52);
+    ctx.quadraticCurveTo(0, -size * 0.66, size * 0.34, -size * 0.52);
+    ctx.quadraticCurveTo(size * 0.74, -size * 0.30, size * 0.66, size * 0.30);
+    ctx.quadraticCurveTo(0, size * 0.56, -size * 0.66, size * 0.30);
+    ctx.closePath(); ctx.fill();
+    // リムライト（光源側の縁）
+    ctx.strokeStyle = rgbStr(hex2rgb(st.sunGlow), 0.42); ctx.lineWidth = size * 0.022;
+    ctx.beginPath();
+    var rr = st.sunX >= 0 ? 1 : -1;
+    ctx.moveTo(rr * size * 0.34, -size * 0.52);
+    ctx.quadraticCurveTo(rr * size * 0.74, -size * 0.30, rr * size * 0.66, size * 0.30);
+    ctx.stroke();
+    ctx.restore();
+
+    // 目（発光する差し色。この魔獣で唯一の明るい色）
+    var ey = y - size * 0.26, ex = size * 0.24, er = size * 0.115;
+    Sprites.drawGlow(x - ex, ey, size * 0.30, '#ffe066', 0.75);
+    Sprites.drawGlow(x + ex, ey, size * 0.30, '#ffe066', 0.75);
+    ctx.fillStyle = '#fff6c8';
+    ctx.beginPath(); ctx.ellipse(x - ex, ey, er, er * 0.52, -0.12, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x + ex, ey, er, er * 0.52, 0.12, 0, 7); ctx.fill();
+    ctx.fillStyle = '#3a2400';
+    ctx.beginPath(); ctx.ellipse(x - ex, ey, er * 0.30, er * 0.42, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x + ex, ey, er * 0.30, er * 0.42, 0, 0, 7); ctx.fill();
     // HP（魔獣の直下、答えの板より上）
     var bw = W * 0.42, bx = (W - bw) / 2, by = gm.bottom + 6;
-    ctx.fillStyle = 'rgba(0,0,0,0.45)'; ctx.roundRect(bx, by, bw, 7, 4); ctx.fill();
-    ctx.fillStyle = '#ff6a8a'; ctx.roundRect(bx, by, bw * (1 - b.hits / BOSS_HITS), 7, 4); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,0.45)'; rrect(ctx, bx, by, bw, 7, 4); ctx.fill();
+    ctx.fillStyle = '#ff6a8a'; rrect(ctx, bx, by, bw * (1 - b.hits / BOSS_HITS), 7, 4); ctx.fill();
   }
 
   function drawTrail(st) {
@@ -970,45 +1198,49 @@
     ctx.rotate(tilt);
     ctx.scale(scale, scale * squash);
 
-    // 影
-    ctx.globalAlpha = clamp(0.34 - jump / 400, 0.06, 0.34);
+    // 接地影（跳ぶほど薄く小さく＝高さが読める）
+    var shA = clamp(0.40 - jump / 320, 0.07, 0.40);
+    var shW = clamp(23 - jump * 0.10, 12, 23);
+    ctx.globalAlpha = shA;
     ctx.fillStyle = '#000';
-    ctx.beginPath(); ctx.ellipse(0, 34 + jump * 0.35, 22, 6.5, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, 35 + jump * 0.30, shW, shW * 0.28, 0, 0, 7); ctx.fill();
+    ctx.globalAlpha = shA * 0.7;
+    ctx.beginPath(); ctx.ellipse(0, 35 + jump * 0.30, shW * 0.5, shW * 0.16, 0, 0, 7); ctx.fill();
     ctx.globalAlpha = 1;
 
-    var legA = Math.sin(t) * 10, legB = Math.sin(t + Math.PI) * 10;
-    var sway = Math.sin(t * 0.9) * 3.6;          // 走りに合わせた横揺れ
-    var wind = Math.sin(t * 1.7) * 2.6;          // 風のうねり
-    var wind2 = Math.sin(t * 1.7 + 0.9) * 3.2;
+    // ── フォロースルー（追従遅れ）: 髪・マント・裾は本体を「遅れて」追う。
+    //    本体と同位相にすると布に見えず機械的になる（Benchmark 第11項）。
+    var lagX = (G.lagX - G.charX);                       // 右へ動くと負 = 布は左へ流れる
+    var lagY = (G.lagY - G.bob);
+    var sway = clamp(lagX * 0.55, -9, 9) + Math.sin(t * 0.9) * 1.6;
+    var wind = Math.sin(t * 1.7) * 2.2 + lagY * 0.5;
+    var wind2 = Math.sin(t * 1.7 + 0.9) * 2.8 + lagY * 0.7;
 
     // ── マント（いちばん外側。左右に大きく広がってなびく）
     var capeG = ctx.createLinearGradient(0, -22, 0, 34);
     capeG.addColorStop(0, '#7b52c4'); capeG.addColorStop(1, '#4a2d84');
     ctx.fillStyle = capeG;
+    // 裾を短くして脚を見せる（脚が隠れると走行が読めない）
     ctx.beginPath();
-    ctx.moveTo(-11, -20);
-    ctx.quadraticCurveTo(-30 + sway * 1.8, 2, -24 + sway * 2.6, 30 + wind);
-    ctx.quadraticCurveTo(-12 + sway * 2.2, 36 + wind2, 0, 33 + wind);
-    ctx.quadraticCurveTo(12 + sway * 2.2, 36 + wind2, 24 + sway * 2.6, 30 + wind);
-    ctx.quadraticCurveTo(30 + sway * 1.8, 2, 11, -20);
+    ctx.moveTo(-10, -19);
+    ctx.quadraticCurveTo(-21 + sway * 1.6, 0, -17 + sway * 2.4, 19 + wind);
+    ctx.quadraticCurveTo(-8 + sway * 2.0, 24 + wind2, 0, 22 + wind);
+    ctx.quadraticCurveTo(8 + sway * 2.0, 24 + wind2, 17 + sway * 2.4, 19 + wind);
+    ctx.quadraticCurveTo(21 + sway * 1.6, 0, 10, -19);
     ctx.closePath(); ctx.fill();
-    // マントの裏地の陰影
-    ctx.globalAlpha = 0.35; ctx.fillStyle = '#2f1c5c';
+    // 光源の逆側に落ちる陰（立体感）
+    ctx.globalAlpha = 0.38; ctx.fillStyle = '#2f1c5c';
     ctx.beginPath();
-    ctx.moveTo(-8, -18);
-    ctx.quadraticCurveTo(-16 + sway * 2, 6, -12 + sway * 2.4, 28 + wind);
-    ctx.lineTo(12 + sway * 2.4, 28 + wind);
-    ctx.quadraticCurveTo(16 + sway * 2, 6, 8, -18);
+    var sh = st.sunX >= 0 ? -1 : 1;
+    ctx.moveTo(0, -19);
+    ctx.quadraticCurveTo(sh * 21 + sway * 1.6, 0, sh * 17 + sway * 2.4, 19 + wind);
+    ctx.quadraticCurveTo(sh * 8 + sway * 2.0, 24 + wind2, 0, 22 + wind);
     ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1;
 
-    // ── 脚（走行サイクル）
-    ctx.strokeStyle = '#f0cfa4'; ctx.lineWidth = 5.4; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(-5, 16); ctx.lineTo(-6, 30 + legA); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(5, 16); ctx.lineTo(6, 30 + legB); ctx.stroke();
-    // ブーツ
-    ctx.strokeStyle = '#3a2a5e'; ctx.lineWidth = 7.2;
-    ctx.beginPath(); ctx.moveTo(-6, 27 + legA); ctx.lineTo(-6.5, 34 + legA); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(6, 27 + legB); ctx.lineTo(6.5, 34 + legB); ctx.stroke();
+    // ── 脚（膝のある2節。直線2本にしない = 記号化の回避）
+    //    後ろ姿では「膝が上がり、靴底が見え、片脚が地面を蹴る」ことで走りが読める。
+    drawLeg(-5.5, t, -1);
+    drawLeg(5.5, t + Math.PI, 1);
 
     // ── スカート（揺れる）
     var skirtG = ctx.createLinearGradient(0, 0, 0, 22);
@@ -1020,36 +1252,54 @@
     ctx.lineTo(13 + sway * 1.6, 19 + wind * 0.6);
     ctx.quadraticCurveTo(16 + sway * 1.2, 14, 10, 0);
     ctx.closePath(); ctx.fill();
+    // 裾の金の縁取り
+    ctx.strokeStyle = 'rgba(255,215,106,0.62)'; ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.moveTo(-13 + sway * 1.6, 19 + wind * 0.6);
+    ctx.lineTo(13 + sway * 1.6, 19 + wind * 0.6);
+    ctx.stroke();
 
-    // ── 上体（白いローブ）
-    var body = ctx.createLinearGradient(0, -20, 0, 4);
-    body.addColorStop(0, '#fdf6ff'); body.addColorStop(1, '#d9c8f5');
+    // ── 上体（白いローブ）＋ ベルトと裾の縁取り（細部が「作り込み」を出す）
+    var body = ctx.createLinearGradient(-9, -20, 9, 4);
+    body.addColorStop(0, st.sunX >= 0 ? '#d9c8f5' : '#fdf6ff');
+    body.addColorStop(1, st.sunX >= 0 ? '#fdf6ff' : '#d9c8f5');
     ctx.fillStyle = body;
-    ctx.beginPath(); ctx.roundRect(-9.5, -19, 19, 22, 8); ctx.fill();
+    rrect(ctx, -9.5, -19, 19, 22, 8); ctx.fill();
+    // ベルト（くびれを作りシルエットを人体化する）
+    ctx.fillStyle = '#6f4bb0';
+    rrect(ctx, -9.5, -1.5, 19, 4.4, 2); ctx.fill();
+    ctx.fillStyle = '#ffd76a';
+    ctx.beginPath(); ctx.arc(0, 0.7, 1.9, 0, 7); ctx.fill();
+    // 肩の縁取り
+    ctx.strokeStyle = 'rgba(255,215,106,0.55)'; ctx.lineWidth = 1.1;
+    ctx.beginPath(); ctx.moveTo(-9, -15.5); ctx.lineTo(9, -15.5); ctx.stroke();
     // 腕（走りに合わせて前後）
     ctx.strokeStyle = '#efe3ff'; ctx.lineWidth = 4.6; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(-8.5, -13); ctx.lineTo(-10.5 - legA * 0.2, -4 + legA * 0.26); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(8.5, -13); ctx.lineTo(10.5 - legB * 0.2, -4 + legB * 0.26); ctx.stroke();
+    // 腕は脚と逆位相（体幹の逆回転）
+    var armA = Math.sin(t + Math.PI) * 9, armB = Math.sin(t) * 9;
+    ctx.beginPath(); ctx.moveTo(-8.5, -13); ctx.lineTo(-10.5 - armA * 0.2, -4 + armA * 0.26); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(8.5, -13); ctx.lineTo(10.5 - armB * 0.2, -4 + armB * 0.26); ctx.stroke();
 
     // ── 長い髪（細めの毛束が3つ、風になびく）
     var hairG = ctx.createLinearGradient(0, -32, 0, 22);
     hairG.addColorStop(0, '#ffeec4'); hairG.addColorStop(0.45, '#ffd98f'); hairG.addColorStop(1, '#e8a95f');
+    // 髪は細く。広いと体を覆い「髪の塊」に見えてシルエットが死ぬ。
     ctx.fillStyle = hairG;
     ctx.beginPath();
-    ctx.moveTo(-9.5, -30);
-    ctx.quadraticCurveTo(-14 + sway * 1.5, -8, -10 + sway * 2.5, 14 + wind);
-    ctx.quadraticCurveTo(-5 + sway * 2.8, 21 + wind2, 0 + sway * 2.6, 19 + wind);
-    ctx.quadraticCurveTo(5 + sway * 2.8, 21 + wind2, 10 + sway * 2.5, 14 + wind);
-    ctx.quadraticCurveTo(14 + sway * 1.5, -8, 9.5, -30);
+    ctx.moveTo(-7, -30);
+    ctx.quadraticCurveTo(-10 + sway * 1.4, -10, -7.5 + sway * 2.3, 8 + wind);
+    ctx.quadraticCurveTo(-3.5 + sway * 2.6, 14 + wind2, 0 + sway * 2.4, 12 + wind);
+    ctx.quadraticCurveTo(3.5 + sway * 2.6, 14 + wind2, 7.5 + sway * 2.3, 8 + wind);
+    ctx.quadraticCurveTo(10 + sway * 1.4, -10, 7, -30);
     ctx.closePath(); ctx.fill();
-    // 毛先が風で分かれる
-    ctx.strokeStyle = hairG; ctx.lineWidth = 3.4; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(-8 + sway * 2, 8); ctx.quadraticCurveTo(-15 + sway * 3, 16 + wind, -17 + sway * 3.4, 23 + wind2); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(8 + sway * 2, 8); ctx.quadraticCurveTo(15 + sway * 3, 16 + wind, 17 + sway * 3.4, 23 + wind2); ctx.stroke();
+    // 3本の毛束が別位相で流れる（Art Bible 第9節）
+    ctx.strokeStyle = hairG; ctx.lineWidth = 3.0; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-6 + sway * 1.8, 2); ctx.quadraticCurveTo(-11 + sway * 3, 10 + wind, -12 + sway * 3.6, 17 + wind2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(6 + sway * 1.8, 2); ctx.quadraticCurveTo(11 + sway * 3, 10 + wind2, 12 + sway * 3.6, 17 + wind); ctx.stroke();
     // 毛束のハイライト
-    ctx.strokeStyle = 'rgba(255,255,255,0.42)'; ctx.lineWidth = 1.6;
-    ctx.beginPath(); ctx.moveTo(-4, -25); ctx.quadraticCurveTo(-7 + sway * 2.2, -2, -4 + sway * 2.6, 15 + wind); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(4, -25); ctx.quadraticCurveTo(7 + sway * 2.2, -2, 4 + sway * 2.6, 15 + wind); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,0.45)'; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.moveTo(-3, -25); ctx.quadraticCurveTo(-5 + sway * 2, -4, -3 + sway * 2.4, 9 + wind); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(3, -25); ctx.quadraticCurveTo(5 + sway * 2, -4, 3 + sway * 2.4, 9 + wind); ctx.stroke();
 
     // ── 頭（後頭部・髪で覆う）
     ctx.fillStyle = hairG;
@@ -1086,6 +1336,20 @@
     ctx.beginPath(); ctx.moveTo(15, 14); ctx.lineTo(19, -30); ctx.stroke();
     ctx.restore();
 
+    // ── リムライト（逆光側の縁を光らせ、暗い背景でシルエットを立てる）
+    ctx.save();
+    ctx.translate(x, y - jump); ctx.rotate(tilt); ctx.scale(scale, scale * squash);
+    var rim = st.sunX >= 0 ? 1 : -1;
+    ctx.strokeStyle = rgbStr(hex2rgb(st.sunGlow), 0.5); ctx.lineWidth = 1.8; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.arc(0, -30, 11.4, rim > 0 ? -1.5 : 1.5, rim > 0 ? 0.5 : 2.9); ctx.stroke();   // 頭
+    ctx.beginPath();
+    ctx.moveTo(rim * 11, -19); ctx.quadraticCurveTo(rim * 15, -4, rim * 12, 3);                        // 胴
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(rim * 14 + sway * 1.4, 2); ctx.quadraticCurveTo(rim * 20 + sway * 2, 16, rim * 15 + sway * 2.4, 22 + wind);
+    ctx.stroke();                                                                                       // マント縁
+    ctx.restore();
+
     // 杖の光（スケール外の実座標で）
     var tipX = x + 19 * scale, tipY = (y - jump) - 33 * scale;
     Sprites.drawGlow(tipX, tipY, 26 * scale, st.part, 0.85);
@@ -1100,6 +1364,38 @@
       var aur = G.combo >= 50 ? hueColor(G.worldZ * 3) : st.edge;
       Sprites.drawGlow(x, y - jump - 16, 74 * scale, aur, 0.30 + Math.min(G.combo, 60) / 300);
     }
+  }
+
+  /* 膝のある脚。phase 0..2π。lift>0 で遊脚（膝を上げる）、lift≈0 で接地。
+     hip(腰) → knee(膝) → foot(足) の2節を実際に計算して描く。 */
+  function drawLeg(hipX, phase, side) {
+    var s = Math.sin(phase);
+    var lift = Math.max(0, s);                 // 遊脚のとき正
+    var thighLen = 11, shinLen = 11;
+    var hipY = 14;
+    // 遊脚は膝が前(上)に上がり、支持脚は伸びて後ろへ蹴り抜く
+    // 遊脚は腿を上げ、膝を深く畳んで踵を尻へ引きつける（＝足が上がる）
+    var thighAng = -0.35 + lift * 1.10 - Math.max(0, -s) * 0.45;
+    var kneeBend = 0.30 + lift * 2.00;
+    var kx = hipX + Math.sin(thighAng) * thighLen * side * 0.35;
+    var ky = hipY + Math.cos(thighAng) * thighLen;
+    var shinAng = thighAng - kneeBend;
+    var fx = kx + Math.sin(shinAng) * shinLen * side * 0.35;
+    var fy = ky + Math.cos(shinAng) * shinLen;
+
+    // 太腿・脛
+    ctx.strokeStyle = '#f0cfa4'; ctx.lineWidth = 5.6; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(hipX, hipY); ctx.lineTo(kx, ky); ctx.lineTo(fx, fy); ctx.stroke();
+    // ブーツ（遊脚は靴底が見える＝踏み込みの証拠）
+    ctx.save();
+    ctx.translate(fx, fy); ctx.rotate(lift * 0.5 * side);
+    ctx.fillStyle = '#3a2a5e';
+    rrect(ctx, -3.4, -1.5, 6.8, 8, 2.6); ctx.fill();
+    ctx.fillStyle = '#6f4bb0';                       // ブーツの折り返し
+    rrect(ctx, -3.7, -2.4, 7.4, 2.6, 1.3); ctx.fill();
+    if (lift > 0.45) { ctx.fillStyle = '#8a72b8'; rrect(ctx, -3.4, 4.6, 6.8, 2.4, 1.2); ctx.fill(); }
+    ctx.restore();
+    return { fx: fx, fy: fy, planted: lift < 0.08 };
   }
 
   function hueColor(h) { return 'hsl(' + Math.round(h % 360) + ',95%,68%)'; }
@@ -1122,15 +1418,60 @@
   }
 
   function drawFog(st) {
-    var g = ctx.createLinearGradient(0, horizonY - 30, 0, horizonY + 90);
-    g.addColorStop(0, st.fog); g.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = g; ctx.fillRect(0, horizonY - 30, W, 130);
+    // 地平線に溜まる霞。世界と空の継ぎ目を消す。
+    var hz = hex2rgb(st.haze);
+    // 上端を硬い線にしない（硬いとボスや遠景を「切った」ように見える）
+    var g = ctx.createLinearGradient(0, horizonY - 70, 0, horizonY + 120);
+    g.addColorStop(0, rgbStr(hz, 0));
+    g.addColorStop(0.30, rgbStr(hz, 0.34));
+    g.addColorStop(0.46, rgbStr(hz, 0.50));
+    g.addColorStop(0.72, rgbStr(hz, 0.20));
+    g.addColorStop(1, rgbStr(hz, 0));
+    ctx.fillStyle = g; ctx.fillRect(-OVERSCAN, horizonY - 70, W + OVERSCAN * 2, 190);
+  }
+
+  /* フィルムグレイン: 一度だけ作って敷き詰める。
+     わずかな粒状感がベタ塗り感を消し、「描いた画」に見せる（商用品質の底上げ）。*/
+  var grainTile = null;
+  function getGrain() {
+    if (grainTile) return grainTile;
+    var n = 96, c = document.createElement('canvas');
+    c.width = c.height = n;
+    var g = c.getContext('2d'), img = g.createImageData(n, n), d = img.data;
+    for (var i = 0; i < d.length; i += 4) {
+      var v = 128 + (Math.random() - 0.5) * 90;
+      d[i] = d[i + 1] = d[i + 2] = v; d[i + 3] = 255;
+    }
+    g.putImageData(img, 0, 0);
+    grainTile = c; return c;
   }
 
   function drawOverlays(st) {
-    // ビネット
-    var vg = ctx.createRadialGradient(W / 2, H * 0.55, H * 0.32, W / 2, H * 0.55, H * 0.85);
-    vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.45)');
+    // カラーグレーディング: ハイライトを暖色へ、シャドウを寒色へ寄せる split-tone。
+    // 写真的な色の分離が入ると一気に「作品」に見える。
+    ctx.globalCompositeOperation = 'overlay';
+    var tg = ctx.createLinearGradient(0, 0, 0, H);
+    tg.addColorStop(0, rgbStr(hex2rgb(st.sunGlow), 0.16));
+    tg.addColorStop(0.55, 'rgba(0,0,0,0)');
+    tg.addColorStop(1, rgbStr(hex2rgb(st.sky[0]), 0.22));
+    ctx.fillStyle = tg; ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'source-over';
+
+    // 粒状感
+    ctx.globalAlpha = 0.035;
+    ctx.globalCompositeOperation = 'overlay';
+    var gt = getGrain(), ox = (G.worldZ * 7) % 96, oy = (G.worldZ * 11) % 96;
+    for (var gx = -96; gx < W + 96; gx += 96)
+      for (var gy = -96; gy < H + 96; gy += 96)
+        ctx.drawImage(gt, gx - ox, gy - oy);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1;
+
+    // ビネット（周辺を落として中央へ視線を集める）
+    var vg = ctx.createRadialGradient(W / 2, H * 0.55, H * 0.30, W / 2, H * 0.55, H * 0.88);
+    vg.addColorStop(0, 'rgba(0,0,0,0)');
+    vg.addColorStop(0.65, 'rgba(0,0,0,0.16)');
+    vg.addColorStop(1, 'rgba(0,0,0,0.52)');
     ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
 
     // 虹（100コンボ等）
@@ -1160,7 +1501,7 @@
       ctx.textAlign = 'center';
       ctx.fillStyle = 'rgba(0,0,0,0.5)';
       var bw = ctx.measureText(G.banner).width + 28;
-      ctx.roundRect(W / 2 - bw / 2, H * 0.62, bw, 34, 17); ctx.fill();
+      rrect(ctx, W / 2 - bw / 2, H * 0.62, bw, 34, 17); ctx.fill();
       ctx.fillStyle = G.kind === 'good' ? '#c9ffd8' : '#ffc9c9';
       ctx.fillText(G.banner, W / 2, H * 0.62 + 22);
       ctx.textAlign = 'left'; ctx.globalAlpha = 1;
@@ -1322,11 +1663,29 @@
     t('stage 1000m', stageFor(1000).name === 'オーロラ雪嶺');
     t('stage 1500m', stageFor(1500).name === '天空神殿');
     t('all stages have scenery+palette', STAGES.every(function (s) { return s.scen && s.sky.length === 4 && s.part && s.edge; }));
+    // Art Bible: 各ステージに光源方向と霞色（空気遠近の基準）がある
+    t('every stage defines a light direction', STAGES.every(function (s) { return typeof s.sunX === 'number' && Math.abs(s.sunX) >= 0.3; }));
+    t('every stage defines a haze color', STAGES.every(function (s) { return /^#[0-9a-f]{6}$/i.test(s.haze); }));
+    // 空気遠近: 奥ほど霞へ寄る（単調増加）。これが無いと「図形の貼り付け」に見える
+    setHaze(STAGES[0]);
+    var near = depth('#000000', 0), mid = depth('#000000', 0.5), farC = depth('#000000', 1);
+    function lum(rgbs) { var m = rgbs.match(/[\d.]+/g); return (+m[0] + +m[1] + +m[2]) / 3; }
+    t('atmospheric perspective increases with depth', lum(near) < lum(mid) && lum(mid) < lum(farC));
+    t('haze reaches 85% at horizon', Math.abs(hazeAmt(1) - 0.85) < 0.001 && hazeAmt(0) === 0);
 
     // 低いカメラ = 空が大きい / 0x0 起動でも世界が壊れない
     resize();
     t('viewport never degenerates to zero', W >= 240 && H >= 360 && roadHalfBottom > 0);
     t('camera is low (sky >= 40% of screen)', horizonY / H >= 0.40);
+    // 主人公を画面下へ沈めない（足元は画面高の68〜75%）
+    newGame();
+    var footRatio = charY() / H;
+    t('hero is not sunk to the bottom (foot 68-75%)', footRatio >= 0.68 && footRatio <= 0.75);
+    // 速度で遠近が強まる（加速感）
+    var d0f = DEPTH; G.speed = 2.2; for (var f = 0; f < 60; f++) updateFov(0.05);
+    t('perspective deepens with speed (FOV)', DEPTH > d0f);
+    G.speed = 1; for (var f2 = 0; f2 < 90; f2++) updateFov(0.05);
+    t('perspective returns at base speed', Math.abs(DEPTH - 6.2) < 0.2);
 
     newGame();
     var seen = { 0: 0, 1: 0, 2: 0 }, valid = true;
@@ -1380,6 +1739,15 @@
     });
     t('answer plates never overlap (longest word, 5 viewports)', overlapOK);
     t('answer plates stay on screen (5 viewports)', insideOK);
+    // rrect は必ず新しいパスを開始する（開始しないと直前の図形と融合して塗られる）
+    (function () {
+      var probe = document.createElement('canvas').getContext('2d');
+      probe.beginPath(); probe.moveTo(0, 0); probe.lineTo(50, 0); probe.lineTo(50, 50);
+      rrect(probe, 60, 60, 10, 10, 2);
+      // 新パスなら (0,0) は塗り領域に含まれない
+      probe.fillStyle = '#fff';
+      t('rrect starts a fresh path (no shape fusion)', !probe.isPointInPath(1, 1));
+    })();
 
     newGame();
     var d0 = G.dist; G.chosen = G.correctLane; resolve();
@@ -1390,6 +1758,30 @@
     t('wrong loses a life', G.lives === lv - 1);
     t('wrong resets combo', G.combo === 0);
     t('wrong records missed word', G.missed.length === 1);
+
+    // フォロースルー: 髪/マントの遅延値が本体と同位相にならないこと（機械的動きの回帰防止）
+    newGame();
+    G.charX = W / 2; G.lagX = W / 2;
+    G.charLane = 2;
+    var maxGap = 0;
+    for (var u = 0; u < 40; u++) { update(0.016); maxGap = Math.max(maxGap, Math.abs(G.lagX - G.charX)); }
+    t('cloth/hair lags behind the body (follow-through)', maxGap > 1.5);
+    // カメラの移動量がオーバースキャンを超えると画面端に黒帯が出る
+    newGame();
+    var camOK = true;
+    G.charLane = 0;
+    for (var c2 = 0; c2 < 120; c2++) {
+      update(0.016);
+      if (Math.abs((G.charX - G.camX) * 0.22) > OVERSCAN * 3) camOK = false;
+    }
+    t('camera never starts detached (no edge gap at boot)', Math.abs(G.charX - G.camX) < W * 0.5 && camOK);
+    // 膝のある脚: 遊脚は足が持ち上がり、支持脚は伸びて接地する（上下移動だけの走行を禁止）
+    ctx.save();
+    var swingLeg = drawLeg(0, Math.PI / 2, 1);    // 遊脚（膝が最も上がる位相）
+    var standLeg = drawLeg(0, -Math.PI / 2, 1);   // 支持脚（伸びきる位相）
+    ctx.restore();
+    t('legs articulate: swing foot lifts above stance foot', swingLeg.fy < standLeg.fy - 3);
+    t('stance leg registers ground contact', standLeg.planted && !swingLeg.planted);
 
     // 神回避スロー
     newGame(); G.tLeft = G.tQ * 0.05; G.chosen = G.correctLane; resolve();
