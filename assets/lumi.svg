@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  WORD QUEST RUN — LUMI 正式キャラクターアート（背面ビュー・マスター原本）
+
+  この SVG が正本。Illustrator / Figma / Inkscape で直接編集できる。
+  ゲームは各 <symbol> を個別に取り出してラスタライズし、リグで動かす。
+  仕様: docs/CHARACTER_BIBLE_LUMI.md
+  不変の3点: ①帽子の折れた頂点 ②左の長い三つ編み ③大きなブーツ
+
+  各 symbol は独立して描画できるよう、グラデーションを内部に持つ。
+  座標系はパーツごとの viewBox。ピボットは docs の分割仕様に従う。
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute">
+<defs>
+
+<!-- ============ 帽子・冠部（折れた先端＝最重要の識別点） ============ -->
+<symbol id="lumi-hat-crown" viewBox="0 0 340 300">
+  <linearGradient id="hcG" x1="0" y1="0" x2="1" y2="0.6">
+    <stop offset="0" stop-color="#7B52C4"/>
+    <stop offset="0.55" stop-color="#5B3A9E"/>
+    <stop offset="1" stop-color="#3A2470"/>
+  </linearGradient>
+  <linearGradient id="hcTip" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#6B46B4"/><stop offset="1" stop-color="#2F1C5C"/>
+  </linearGradient>
+  <!-- 冠部本体: 底から立ち上がり、上部で左後方へ折れる -->
+  <path d="M62 296 C70 200 96 140 128 96 L176 118 C158 168 150 232 150 296 Z" fill="url(#hcG)"/>
+  <!-- 折れた先端 -->
+  <path d="M128 96 C104 62 70 44 34 40 C60 30 96 40 124 60 C142 72 158 92 176 118 Z" fill="url(#hcTip)"/>
+  <!-- 折れ目の陰 -->
+  <path d="M128 96 C140 100 156 108 176 118 L166 140 C150 124 138 108 128 96 Z" fill="#2A1852" opacity="0.55"/>
+  <!-- 先端の光の粒（琥珀） -->
+  <circle cx="40" cy="42" r="11" fill="#FFD76A"/>
+  <circle cx="36" cy="38" r="4" fill="#FFF3C8"/>
+  <!-- 立体のハイライト -->
+  <path d="M84 290 C90 210 110 156 132 118 L146 126 C124 168 108 218 102 290 Z" fill="#8E68D8" opacity="0.35"/>
+</symbol>
+
+<!-- ============ 帽子・つば（左が下がる非対称） ============ -->
+<symbol id="lumi-hat-brim" viewBox="0 0 380 120">
+  <linearGradient id="hbG" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#7B52C4"/><stop offset="1" stop-color="#432A82"/>
+  </linearGradient>
+  <path d="M12 74 C60 34 150 20 208 22 C286 25 356 44 372 66 C356 92 280 106 200 104 C120 102 40 96 12 74 Z" fill="url(#hbG)"/>
+  <!-- 裏地の陰 -->
+  <path d="M22 78 C70 96 140 104 200 104 C270 105 340 94 368 72 C348 96 276 110 198 108 C118 106 44 98 22 78 Z" fill="#2F1C5C" opacity="0.6"/>
+  <!-- ハットバンド（琥珀） -->
+  <path d="M44 66 C104 40 180 32 236 34 C300 37 344 50 358 62 C336 56 292 48 234 46 C176 44 100 52 44 66 Z" fill="#FFD76A" opacity="0.92"/>
+</symbol>
+
+<!-- ============ 頭（後頭部・髪で覆われる） ============ -->
+<symbol id="lumi-head" viewBox="0 0 220 220">
+  <radialGradient id="hdG" cx="0.36" cy="0.3" r="0.8">
+    <stop offset="0" stop-color="#FFF0C4"/><stop offset="0.6" stop-color="#FFD98F"/><stop offset="1" stop-color="#E8A95F"/>
+  </radialGradient>
+  <circle cx="110" cy="110" r="104" fill="url(#hdG)"/>
+  <!-- 分け目 -->
+  <path d="M110 8 C104 60 106 118 112 200" stroke="#E8A95F" stroke-width="5" fill="none" opacity="0.55"/>
+  <!-- つや -->
+  <ellipse cx="76" cy="66" rx="40" ry="22" fill="#FFFFFF" opacity="0.30" transform="rotate(-24 76 66)"/>
+</symbol>
+
+<!-- ============ 三つ編み 1節（左・3節を連ねて波打たせる） ============ -->
+<symbol id="lumi-braid" viewBox="0 0 110 180">
+  <linearGradient id="brG" x1="0" y1="0" x2="1" y2="0.4">
+    <stop offset="0" stop-color="#FFE9B8"/><stop offset="0.5" stop-color="#FFD98F"/><stop offset="1" stop-color="#DE9B52"/>
+  </linearGradient>
+  <path d="M55 4 C86 20 92 56 72 84 C52 112 50 148 58 176 C34 152 26 116 40 84 C54 52 44 24 55 4 Z" fill="url(#brG)"/>
+  <!-- 編み目 -->
+  <path d="M46 30 C64 40 68 56 56 70" stroke="#C98A46" stroke-width="4" fill="none" opacity="0.5" stroke-linecap="round"/>
+  <path d="M44 80 C62 90 64 108 50 122" stroke="#C98A46" stroke-width="4" fill="none" opacity="0.5" stroke-linecap="round"/>
+  <path d="M46 128 C62 138 62 156 52 170" stroke="#C98A46" stroke-width="4" fill="none" opacity="0.45" stroke-linecap="round"/>
+  <!-- ハイライト -->
+  <path d="M60 12 C78 30 78 58 64 80" stroke="#FFF6DC" stroke-width="5" fill="none" opacity="0.55" stroke-linecap="round"/>
+</symbol>
+
+<!-- ============ 三つ編みの結び（先端） ============ -->
+<symbol id="lumi-braid-tie" viewBox="0 0 90 90">
+  <path d="M20 26 C40 14 62 16 74 30 C62 44 38 48 20 38 Z" fill="#FF8A6A"/>
+  <path d="M28 44 C42 56 40 74 30 84 C24 70 22 56 28 44 Z" fill="#FF8A6A" opacity="0.85"/>
+  <path d="M56 44 C68 54 70 72 62 84 C54 70 52 56 56 44 Z" fill="#FF8A6A" opacity="0.7"/>
+</symbol>
+
+<!-- ============ 遊び毛（右・短い側） ============ -->
+<symbol id="lumi-hair-loose" viewBox="0 0 150 260">
+  <linearGradient id="hlG" x1="0.2" y1="0" x2="0.9" y2="1">
+    <stop offset="0" stop-color="#FFE9B8"/><stop offset="0.6" stop-color="#FFD98F"/><stop offset="1" stop-color="#E5A45C"/>
+  </linearGradient>
+  <path d="M74 4 C120 30 134 96 116 152 C104 190 96 224 100 252 C74 226 62 182 70 140 C78 96 60 40 74 4 Z" fill="url(#hlG)"/>
+  <path d="M84 24 C110 60 112 108 98 146" stroke="#FFF6DC" stroke-width="6" fill="none" opacity="0.5" stroke-linecap="round"/>
+  <path d="M74 60 C60 106 62 158 76 200" stroke="#D89A50" stroke-width="4" fill="none" opacity="0.4" stroke-linecap="round"/>
+</symbol>
+
+<!-- ============ ハーフマント（右肩のみ＝非対称） ============ -->
+<symbol id="lumi-cape" viewBox="0 0 380 420">
+  <linearGradient id="cpG" x1="0.15" y1="0" x2="0.9" y2="1">
+    <stop offset="0" stop-color="#7B52C4"/><stop offset="0.5" stop-color="#5B3A9E"/><stop offset="1" stop-color="#361F6B"/>
+  </linearGradient>
+  <!-- 本体: 右肩から左下へ流れる -->
+  <path d="M300 14 C332 60 344 150 316 246 C292 330 240 386 176 408
+           C120 396 68 356 34 300 C86 302 140 276 182 226 C226 174 252 92 258 20 Z" fill="url(#cpG)"/>
+  <!-- 裾のほつれ（鋭い結晶の形言語） -->
+  <path d="M176 408 C150 396 122 382 96 362 L120 392 L86 378 L108 402 L74 394 L100 412 Z" fill="#361F6B" opacity="0.9"/>
+  <!-- 裏地 -->
+  <path d="M258 20 C252 92 226 174 182 226 C140 276 86 302 34 300 C74 316 128 300 172 258 C220 212 248 122 258 20 Z" fill="#2F1C5C" opacity="0.75"/>
+  <!-- 金の縁取り -->
+  <path d="M300 14 C332 60 344 150 316 246 C292 330 240 386 176 408" stroke="#FFD76A" stroke-width="7" fill="none" opacity="0.75"/>
+  <!-- 肩の留め具 -->
+  <circle cx="286" cy="34" r="20" fill="#FFD76A"/>
+  <circle cx="286" cy="34" r="9" fill="#7B52C4"/>
+</symbol>
+
+<!-- ============ スカーフ 1節（動きの視認性を担う唯一の暖色） ============ -->
+<symbol id="lumi-scarf" viewBox="0 0 130 90">
+  <linearGradient id="scG" x1="0" y1="0" x2="1" y2="0.5">
+    <stop offset="0" stop-color="#FF9E7C"/><stop offset="1" stop-color="#E5654A"/>
+  </linearGradient>
+  <path d="M4 30 C40 6 92 8 126 26 C94 52 46 60 8 62 Z" fill="url(#scG)"/>
+  <path d="M8 62 C46 60 94 52 126 26 C100 58 52 74 12 76 Z" fill="#C24E38" opacity="0.55"/>
+</symbol>
+
+<!-- ============ 胴（ローブ）＋ベルト ============ -->
+<symbol id="lumi-torso" viewBox="0 0 240 260">
+  <linearGradient id="tsG" x1="0.1" y1="0" x2="0.95" y2="0.7">
+    <stop offset="0" stop-color="#FFFFFF"/><stop offset="0.55" stop-color="#FDF6FF"/><stop offset="1" stop-color="#CDBAEC"/>
+  </linearGradient>
+  <!-- 肩から腰へ、くびれを作る -->
+  <path d="M56 20 C88 6 152 6 184 20 C196 74 196 120 186 168
+           C154 182 86 182 54 168 C44 120 44 74 56 20 Z" fill="url(#tsG)"/>
+  <!-- 襟 -->
+  <path d="M56 20 C88 6 152 6 184 20 C160 34 80 34 56 20 Z" fill="#E6DAF8"/>
+  <!-- ベルト -->
+  <rect x="50" y="168" width="140" height="30" rx="12" fill="#3A2A5E"/>
+  <circle cx="120" cy="183" r="12" fill="#FFD76A"/>
+  <circle cx="120" cy="183" r="5" fill="#3A2A5E"/>
+  <!-- 背の縫い目 -->
+  <path d="M120 34 L120 166" stroke="#D8C8F0" stroke-width="4" opacity="0.8"/>
+  <!-- 肩の金縁 -->
+  <path d="M60 30 C92 18 148 18 180 30" stroke="#FFD76A" stroke-width="5" fill="none" opacity="0.7"/>
+</symbol>
+
+<!-- ============ スカート ============ -->
+<symbol id="lumi-skirt" viewBox="0 0 300 220">
+  <linearGradient id="skG" x1="0.2" y1="0" x2="0.9" y2="1">
+    <stop offset="0" stop-color="#6B46B4"/><stop offset="0.6" stop-color="#4A2F8C"/><stop offset="1" stop-color="#33205F"/>
+  </linearGradient>
+  <path d="M96 8 C130 0 170 0 204 8 C236 70 254 140 264 200
+           C210 214 90 214 36 200 C46 140 64 70 96 8 Z" fill="url(#skG)"/>
+  <!-- プリーツ -->
+  <path d="M124 14 L106 200" stroke="#2C1B56" stroke-width="5" opacity="0.5"/>
+  <path d="M176 14 L194 200" stroke="#2C1B56" stroke-width="5" opacity="0.5"/>
+  <path d="M150 12 L150 202" stroke="#7B52C4" stroke-width="4" opacity="0.4"/>
+  <!-- 裾の金縁 -->
+  <path d="M36 200 C90 214 210 214 264 200" stroke="#FFD76A" stroke-width="7" fill="none" opacity="0.8"/>
+</symbol>
+
+<!-- ============ 腕（上腕＋前腕を1パーツ化。肘で曲げる） ============ -->
+<symbol id="lumi-arm" viewBox="0 0 110 290">
+  <linearGradient id="amG" x1="0" y1="0" x2="1" y2="0.3">
+    <stop offset="0" stop-color="#FDF6FF"/><stop offset="1" stop-color="#CDBAEC"/>
+  </linearGradient>
+  <path d="M34 8 C68 8 84 34 80 74 C76 116 72 150 74 182 C56 190 40 190 26 182 C28 148 30 114 28 76 C26 38 14 12 34 8 Z" fill="url(#amG)"/>
+  <!-- 袖口の金 -->
+  <path d="M26 176 C42 186 58 186 74 176 L74 194 C56 202 42 202 26 194 Z" fill="#FFD76A" opacity="0.9"/>
+  <!-- 手 -->
+  <ellipse cx="50" cy="216" rx="26" ry="30" fill="#F7D9A8"/>
+</symbol>
+
+<!-- ============ 脚（腿＋脛。膝で曲げる） ============ -->
+<symbol id="lumi-leg" viewBox="0 0 120 300">
+  <linearGradient id="lgG" x1="0" y1="0" x2="1" y2="0.2">
+    <stop offset="0" stop-color="#F7D9A8"/><stop offset="1" stop-color="#DDB47F"/>
+  </linearGradient>
+  <path d="M40 6 C74 6 86 30 82 70 C78 118 74 170 76 236 C58 246 44 246 30 236 C32 170 34 118 30 70 C26 30 20 8 40 6 Z" fill="url(#lgG)"/>
+  <!-- 膝の陰 -->
+  <ellipse cx="54" cy="128" rx="24" ry="12" fill="#C99A66" opacity="0.35"/>
+</symbol>
+
+<!-- ============ ブーツ（大きく重い＝低重心・識別点3） ============ -->
+<symbol id="lumi-boot" viewBox="0 0 170 180">
+  <linearGradient id="btG" x1="0.1" y1="0" x2="0.9" y2="0.8">
+    <stop offset="0" stop-color="#4E3A78"/><stop offset="0.6" stop-color="#3A2A5E"/><stop offset="1" stop-color="#251A40"/>
+  </linearGradient>
+  <!-- 折り返し -->
+  <path d="M30 8 C62 -2 108 -2 140 8 C144 30 142 44 138 56 C104 66 62 66 30 56 C26 44 26 30 30 8 Z" fill="#6B46B4"/>
+  <!-- 本体 -->
+  <path d="M34 54 C66 64 106 64 138 54 C146 90 150 120 152 142
+           C154 166 130 176 96 176 C58 176 26 170 22 148 C24 118 28 86 34 54 Z" fill="url(#btG)"/>
+  <!-- ストラップ（琥珀） -->
+  <path d="M26 106 C62 118 112 118 148 106 L150 126 C112 138 62 138 24 126 Z" fill="#FFD76A" opacity="0.92"/>
+  <rect x="76" y="100" width="22" height="40" rx="6" fill="#3A2A5E"/>
+  <!-- 靴底 -->
+  <path d="M22 150 C24 170 58 178 96 178 C132 178 156 168 154 150 C156 172 132 182 96 182 C58 182 20 174 22 150 Z" fill="#1B1230"/>
+</symbol>
+
+<!-- ============ 杖・柄 ============ -->
+<symbol id="lumi-staff" viewBox="0 0 90 520">
+  <linearGradient id="stG" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#A87A4E"/><stop offset="0.5" stop-color="#8A5A3A"/><stop offset="1" stop-color="#5E3A24"/>
+  </linearGradient>
+  <path d="M34 6 C50 6 58 14 56 34 L52 486 C50 508 40 516 30 512 C22 508 20 494 22 480 L30 34 C30 16 26 6 34 6 Z" fill="url(#stG)"/>
+  <!-- 握りの巻き革 -->
+  <path d="M28 300 C42 296 52 300 52 316 L50 366 C50 380 40 384 28 380 Z" fill="#3A2A5E"/>
+  <path d="M28 316 L52 312 M28 336 L52 332 M28 356 L52 352" stroke="#FFD76A" stroke-width="3" opacity="0.55"/>
+</symbol>
+
+<!-- ============ 杖・三日月頭（IPの機構: 内側にグリフオーブが浮く） ============ -->
+<symbol id="lumi-crescent" viewBox="0 0 160 160">
+  <linearGradient id="crG" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#FFE9A8"/><stop offset="0.55" stop-color="#FFD76A"/><stop offset="1" stop-color="#C99230"/>
+  </linearGradient>
+  <path d="M112 18 C142 44 148 96 122 128 C104 150 76 158 52 150
+           C82 142 104 120 108 92 C112 62 100 36 74 20 C88 12 102 12 112 18 Z" fill="url(#crG)"/>
+  <path d="M112 18 C132 40 138 78 124 108" stroke="#FFF6DC" stroke-width="6" fill="none" opacity="0.6" stroke-linecap="round"/>
+</symbol>
+
+<!-- ============ グリフオーブ（出題中の言葉が宿る） ============ -->
+<symbol id="lumi-orb" viewBox="0 0 120 120">
+  <radialGradient id="obG" cx="0.4" cy="0.35" r="0.7">
+    <stop offset="0" stop-color="#FFFFFF"/><stop offset="0.45" stop-color="#FFE9A8"/><stop offset="1" stop-color="#FFB74A"/>
+  </radialGradient>
+  <circle cx="60" cy="60" r="42" fill="url(#obG)"/>
+  <circle cx="46" cy="44" r="12" fill="#FFFFFF" opacity="0.75"/>
+</symbol>
+
+<!-- ============ サッチェル（言葉袋） ============ -->
+<symbol id="lumi-satchel" viewBox="0 0 180 160">
+  <linearGradient id="saG" x1="0" y1="0" x2="0.8" y2="1">
+    <stop offset="0" stop-color="#A87A4E"/><stop offset="1" stop-color="#6B4526"/>
+  </linearGradient>
+  <rect x="18" y="40" width="144" height="104" rx="18" fill="url(#saG)"/>
+  <path d="M18 62 C60 44 120 44 162 62 L162 84 C120 68 60 68 18 84 Z" fill="#8A5A3A"/>
+  <rect x="74" y="70" width="32" height="34" rx="8" fill="#FFD76A"/>
+  <path d="M40 40 C40 14 140 14 140 40" stroke="#6B4526" stroke-width="12" fill="none"/>
+</symbol>
+
+</defs>
+</svg>

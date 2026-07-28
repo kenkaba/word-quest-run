@@ -1193,6 +1193,36 @@
     y += fallY;
     var scale = clamp(W / 330, 0.95, 1.5);   // 主人公の存在感を確保
 
+    // ── 正式アセット（assets/lumi.svg）が読めていればリグで描く。
+    //    未読込・失敗時は下の手続き描画へフォールバックし、ゲームは止めない。
+    if (window.LumiRig && LumiRig.isReady()) {
+      ctx.save();
+      ctx.translate(x, y - jump);
+      ctx.rotate(tilt);
+      ctx.scale(scale * 0.92, scale * 0.92 * squash);
+      // 接地影
+      var shA2 = clamp(0.40 - jump / 320, 0.07, 0.40), shW2 = clamp(23 - jump * 0.10, 12, 23);
+      ctx.globalAlpha = shA2; ctx.fillStyle = '#000';
+      ctx.beginPath(); ctx.ellipse(0, 38 + jump * 0.30, shW2, shW2 * 0.28, 0, 0, 7); ctx.fill();
+      ctx.globalAlpha = 1;
+      LumiRig.draw(ctx, {
+        t: t, unit: 1, sway: sway, wind: wind, wind2: wind2,
+        squash: squash, sunX: st.sunX, jump: jump, combo: G.combo
+      });
+      ctx.restore();
+      // 杖先の光と魔法粒子（実座標）
+      var tipX2 = x + 12.6 * scale, tipY2 = (y - jump) - 33 * scale;
+      Sprites.drawGlow(tipX2, tipY2, 26 * scale, st.part, 0.85);
+      if (Math.random() < 0.5) {
+        spawn('magic', tipX2, tipY2, { vx: rf(-24, 24), vy: rf(-46, -12), g: -20, life: rf(0.5, 1.0), r: rf(1.4, 3), c: st.part });
+      }
+      if (G.combo >= 10) {
+        var aur2 = G.combo >= 50 ? hueColor(G.worldZ * 3) : st.edge;
+        Sprites.drawGlow(x, y - jump - 16, 74 * scale, aur2, 0.30 + Math.min(G.combo, 60) / 300);
+      }
+      return;
+    }
+
     ctx.save();
     ctx.translate(x, y - jump);
     ctx.rotate(tilt);
@@ -1644,6 +1674,8 @@
     el.titleBest.textContent = Store.best();
     el.sound.textContent = Sfx.on ? '🔊' : '🔈';
     bindInput(); resize(); watchSize(); show('title');
+    // 正式アートの読み込み（失敗しても手続き描画で動き続ける）
+    if (window.LumiRig) LumiRig.load(clamp(W / 330, 0.95, 1.5));
     requestAnimationFrame(titleLoop);
     if (/[?&]selftest=1/.test(location.search)) SelfTest();
   }
