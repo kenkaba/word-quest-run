@@ -1,11 +1,11 @@
 /* ==========================================================================
    WORD QUEST RUN — 語彙データ（コア）
 
-   ライセンス:
-   著作権者は浅井。本プロジェクトのために新規作成した専有データ（All rights reserved）。
-   自作データは自動的にCC0にはならないため、CC0相当とは表記しない。
-   市販辞書・Web辞書・権利不明のデータは一切含まない。ShareAlike 義務なし。
-   詳細と台帳は docs/VOCAB_LICENSES.md（DS-001）を正とする。
+   権利表記（正式確認前の暫定）:
+   WORD QUEST RUN独自制作語彙データ。
+   第三者辞書・市販教材からの転載はありません。
+   権利関係および公開ライセンスは正式公開前に確認予定です。
+   ※「自作だからCC0」「著作権者は特定個人」と断定しない。台帳は docs/VOCAB_LICENSES.md。
 
    圧縮形式（モバイルの転送量を抑えるため配列で持つ）:
    [ 0:英単語, 1:日本語訳, 2:品詞, 3:難易度, 4:カテゴリ, 5:発音, 6:例文, 7:例文訳 ]
@@ -19,17 +19,16 @@
    ========================================================================== */
 window.VOCAB_META = {
   version: '1.0.0',
-  license: 'Proprietary (All rights reserved). Authored for WORD QUEST RUN.',
-  copyright: '浅井 / WORD QUEST RUN',
-  shareAlike: false,
-  attributionRequired: false,
+  rightsNotice: 'WORD QUEST RUN独自制作語彙データ。第三者辞書・市販教材からの転載はありません。権利関係および公開ライセンスは正式公開前に確認予定です。',
+  licenseStatus: 'pending-formal-review',
+  thirdPartyData: 'none',
   ledger: 'docs/VOCAB_LICENSES.md#DS-001',
   sources: [
-    { id: 'DS-001', name: 'WORD QUEST RUN original vocabulary',
-      copyrightHolder: '浅井', origin: 'newly authored for this project',
-      license: 'Proprietary (All rights reserved)', acquiredOn: '2026-07-28/29',
-      modifications: 'none (original work)', attribution: 'not required',
-      shareAlike: false, inAppNotice: 'credits screen only', words: 'all' }
+    { id: 'DS-001', name: 'WORD QUEST RUN 独自制作語彙データ',
+      origin: '本プロジェクトのために制作。第三者辞書・市販教材からの転載なし',
+      licenseStatus: '正式公開前に確認予定', acquiredOn: '2026-07-28/29',
+      modifications: '2026-07-29 の意味品質監査で訳語を修正・一部を隔離',
+      inAppNotice: 'クレジット画面に表示', words: 'all' }
   ],
   fields: ['w', 'ja', 'pos', 'lvl', 'cat', 'ipa', 'ex', 'exJa']
 };

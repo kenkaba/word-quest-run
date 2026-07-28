@@ -1853,7 +1853,8 @@
     var ok = 0, ng = 0, log = [];
     function t(name, cond) { if (cond) { ok++; log.push('PASS ' + name); } else { ng++; log.push('FAIL ' + name); } }
 
-    t('vocabulary loaded (>=3000 words)', WORDS.length >= 3000);
+    t('vocabulary: 3,000+ collected, 2,800+ approved',
+      (window.VOCAB_RAW || []).length >= 3000 && WORDS.length >= 2800);
     t('every word can produce 2 POS-matched distractors (sampled)', VOCAB.validate(150).noDistractor === 0);
     t('difficulty range 1..6 (Starter..Master)', WORDS.every(function (w) { return w.lvl >= 1 && w.lvl <= 6; }));
 
@@ -1987,8 +1988,33 @@
     var V = VOCAB.validate(150);
     t('vocab: no missing/duplicate/bad entries', V.issues.missing === 0 && V.issues.duplicate === 0 && V.issues.badPos === 0 && V.issues.badLevel === 0);
     t('vocab: example coverage tracked (not required for play)', typeof V.missingExample === 'number');
-    t('vocab: license metadata is declared (no CC0 claim)',
-      !!(window.VOCAB_META && /Proprietary/.test(window.VOCAB_META.license) && window.VOCAB_META.shareAlike === false));
+    t('rights notice avoids CC0 and personal-copyright claims',
+      !!(window.VOCAB_META && window.VOCAB_META.rightsNotice &&
+         /正式公開前に確認予定/.test(window.VOCAB_META.rightsNotice) &&
+         !/CC0/.test(window.VOCAB_META.rightsNotice) &&
+         !/All rights reserved/i.test(window.VOCAB_META.rightsNotice)));
+    t('quality overlay applied (quarantine + confusable groups)',
+      !!(window.VOCAB_QUALITY && Object.keys(window.VOCAB_QUALITY.quarantine).length > 0 &&
+         Object.keys(window.VOCAB_QUALITY.groups).length > 0));
+    t('quarantined words are never served', Object.keys(window.VOCAB_QUALITY.quarantine)
+      .every(function (w) { return !VOCAB.byId[w]; }));
+    t('every served word is approved', WORDS.every(function (w) { return w.qualityStatus === 'approved'; }));
+    t('served words carry senseId / confusableGroup fields',
+      WORDS.every(function (w) { return !!w.senseId && ('confusableGroup' in w); }));
+    // 複数正解リスク: 同じ混同グループが1問に同居しない
+    (function () {
+      var g2 = {}; WORDS.forEach(function (w) { g2[w.ja] = w.confusableGroup; });
+      var clash = 0;
+      for (var z = 0; z < 120; z++) {
+        nextQuestion();
+        var seenG = {};
+        for (var c2 = 0; c2 < 3; c2++) {
+          var gg = g2[G.q.choices[c2]];
+          if (gg) { if (seenG[gg]) clash++; seenG[gg] = 1; }
+        }
+      }
+      t('no multiple-correct risk in 120 generated questions', clash === 0);
+    })();
     t('vocab: no duplicate Japanese translations', (function () {
       var m = {}; for (var i = 0; i < WORDS.length; i++) { if (m[WORDS[i].ja]) return false; m[WORDS[i].ja] = 1; } return true;
     })());

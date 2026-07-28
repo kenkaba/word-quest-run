@@ -7,6 +7,7 @@ global.localStorage = { _d: {}, getItem: function (k) { return this._d[k] || nul
 global.window = {};
 require('../vocab.js');
 require('../vocab-ext.js');
+require('../vocab-quality.js');   // 監査で決めた修正・隔離・グループを適用した状態を検査する
 require('../vocab-engine.js');
 
 var RAW = window.VOCAB_RAW;
@@ -41,7 +42,7 @@ check('選択肢生成不能 0', v.noDistractor === 0, String(v.noDistractor) + 
 
 console.log('\n=== 2. 同義語の衝突（複数正解に見える問題） ===');
 var byJa = {};
-E.words.forEach(function (w) { (byJa[w.ja] = byJa[w.ja] || []).push(w.w); });
+E.words.forEach(function (w) { (byJa[w.ja] = byJa[w.ja] || []).push(w.w); });  // 出荷状態
 var sameJa = Object.keys(byJa).filter(function (k) { return byJa[k].length > 1; });
 check('同一の日本語訳をもつ語 0', sameJa.length === 0,
   sameJa.slice(0, 10).map(function (k) { return k + '=' + byJa[k].join('/'); }).join(', '));
@@ -62,7 +63,8 @@ E.words.forEach(function (w) { lv[w.lvl] = (lv[w.lvl] || 0) + 1; pos[w.pos] = (p
 var NAMES = ['', 'Starter', 'Basic', 'Intermediate', 'Advanced', 'Expert', 'Master'];
 for (var i = 1; i <= 6; i++) console.log('  ' + NAMES[i] + ': ' + (lv[i] || 0));
 console.log('  品詞: ' + JSON.stringify(pos));
-check('総語数 3,000以上', E.words.length >= 3000, String(E.words.length));
+check('収録3,000以上 / 承認2,800以上', RAW.length >= 3000 && E.words.length >= 2800,
+  '収録' + RAW.length + ' / 承認' + E.words.length + ' / 隔離' + E.issues.quarantined);
 check('全難易度に十分な語数（各50以上）', [1, 2, 3, 4, 5, 6].every(function (i) { return (lv[i] || 0) >= 50; }));
 
 console.log('\n=== 5. 1000問シミュレーション ===');

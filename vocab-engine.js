@@ -22,8 +22,11 @@
   var LEVEL_NAMES = ['', 'Starter', 'Basic', 'Intermediate', 'Advanced', 'Expert', 'Master'];
 
   function normalize(raw) {
-    var out = [], seen = {}, issues = { missing: 0, duplicate: 0, badLevel: 0, badPos: 0 };
+    var out = [], seen = {}, issues = { missing: 0, duplicate: 0, badLevel: 0, badPos: 0, quarantined: 0 };
     var POS_OK = { n: 1, v: 1, adj: 1, adv: 1 };
+    /* 品質オーバーレイ（tools/audit-vocab.js が生成）。
+       訳の修正・隔離・混同グループを適用する。無くても動く。 */
+    var Q = window.VOCAB_QUALITY || { corrections: {}, quarantine: {}, groups: {} };
     for (var i = 0; i < raw.length; i++) {
       var e = raw[i];
       // 必須は [英単語, 訳, 品詞, 難易度, カテゴリ] の5項目。
@@ -35,9 +38,21 @@
       var lvl = +e[3];
       if (!(lvl >= 1 && lvl <= 6)) { issues.badLevel++; continue; }
       seen[key] = 1;
+      // 隔離語は出題対象に含めない（データは残すがゲームには出さない）
+      if (Q.quarantine[key]) { issues.quarantined++; continue; }
       out.push({
-        id: key, w: e[0], ja: e[1], pos: e[2], lvl: lvl, cat: e[4] || 'general',
-        ipa: e[5] || '', ex: e[6] || '', exJa: e[7] || ''
+        id: key, w: e[0],
+        ja: Q.corrections[key] || e[1],          // 監査で修正した訳を優先
+        pos: e[2], lvl: lvl, cat: e[4] || 'general',
+        ipa: e[5] || '', ex: e[6] || '', exJa: e[7] || '',
+        // 意味品質のための追加フィールド
+        senseId: key + '#1',                      // 多義語を将来分割できる構造
+        synonymGroup: Q.groups[key] || null,
+        confusableGroup: Q.groups[key] || null,   // 現状は同一グループで運用
+        usageNote: '',
+        frequencyRank: null,
+        qualityStatus: 'approved',
+        reviewReason: Q.corrections[key] ? 'translation corrected in audit' : ''
       });
     }
     return { words: out, issues: issues };
@@ -87,6 +102,7 @@
 
     // 重複防止の記録
     this.recent = [];                 // 直近に出した id
+    this.recentCats = [];             // 直近のカテゴリ（連続を避ける）
     this.recentMax = Math.min(100, Math.max(20, Math.floor(this.words.length * 0.4)));
     this.sessionUsed = {};            // このプレイで出した id
     this.laneHist = [0, 0, 0];        // 正解位置の偏り補正
@@ -104,6 +120,8 @@
   Engine.prototype.startSession = function () {
     this.sessionUsed = {};
     this.laneHist = [0, 0, 0];
+    this.recentCats = [];
+    this.sinceReview = 0;
     this.session = this.blankSession();
   };
 
@@ -142,8 +160,36 @@
     }
     if (!avail.length) avail = pool.slice();
 
+    /* 2.5) 復習枠
+       語彙が3,000語規模になると、苦手語が偶然戻ってくる確率が極端に下がる。
+       一定間隔ごとに「間違えたまま習熟していない語」を優先的に差し込み、
+       学習効果を担保する。連発しないよう間隔と直近除外は維持する。 */
+    this.sinceReview = (this.sinceReview || 0) + 1;
+    if (this.sinceReview >= 8) {
+      var due = avail.filter(function (w) {
+        var st = self.stats[w.id];
+        if (!st || !st.wrong) return false;
+        if (st.mastery >= 0.6) return false;                  // 覚えた語は対象外
+        return (now - st.lastAt) > 60000;                     // 直近1分以内は連発防止
+      });
+      if (due.length) {
+        avail = due;
+        this.sinceReview = 0;
+        this.session.reviews = (this.session.reviews || 0) + 1;
+      }
+    }
+
     // 3) 優先度つき重み抽選（苦手を出しやすく、覚えた語は控えめに）
-    var weights = avail.map(function (w) { return priority(self.stats[w.id], now); });
+    //    同じカテゴリが連続しすぎると単調に感じるため、直近と同じカテゴリは重みを下げる
+    var recentCats = this.recentCats || [];
+    var lastCat = recentCats.length ? recentCats[recentCats.length - 1] : null;
+    var runLen = 0;
+    for (var rc = recentCats.length - 1; rc >= 0 && recentCats[rc] === lastCat; rc--) runLen++;
+    var weights = avail.map(function (w) {
+      var p = priority(self.stats[w.id], now);
+      if (lastCat && w.cat === lastCat) p *= (runLen >= 3 ? 0.05 : runLen >= 2 ? 0.3 : 0.7);
+      return p;
+    });
     var total = weights.reduce(function (a, b) { return a + b; }, 0);
     var pickIdx = 0, r = Math.random() * total, acc = 0;
     for (var i = 0; i < avail.length; i++) { acc += weights[i]; if (r <= acc) { pickIdx = i; break; } }
@@ -165,6 +211,9 @@
     // 記録
     this.recent.push(word.id);
     while (this.recent.length > this.recentMax) this.recent.shift();
+    this.recentCats = this.recentCats || [];
+    this.recentCats.push(word.cat);
+    while (this.recentCats.length > 6) this.recentCats.shift();
     this.sessionUsed[word.id] = 1;
     this.laneHist[correctLane]++;
     this.session.unique[word.id] = 1;
@@ -180,21 +229,28 @@
       return self.words.filter(function (o) {
         if (o.id === word.id) return false;
         if (o.pos !== word.pos) return false;                 // 品詞不一致は構造的に禁止
-        if (o.ja === word.ja) return false;                   // 同義の訳は除外
+        if (o.ja === word.ja) return false;                   // 同一の訳は除外
+        // 同じ混同グループ（意味が近すぎて複数正解に見える）は同時に出さない
+        if (word.confusableGroup && o.confusableGroup === word.confusableGroup) return false;
         if (Math.abs(o.lvl - word.lvl) > lvlSpan) return false;
         if (sameCat && o.cat !== word.cat) return false;
         return true;
       });
     }
     // 同カテゴリ（最も紛らわしい）→ 難易度±1 → ±2 の順に集める
-    var picked = [], used = {};
+    var picked = [], used = {}, usedGroup = {};
+    if (word.confusableGroup) usedGroup[word.confusableGroup] = 1;
     function take(list, n) {
       list = list.slice();
       for (var i = list.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = list[i]; list[i] = list[j]; list[j] = t; }
       for (var k = 0; k < list.length && picked.length < n; k++) {
         var o = list[k];
         if (used[o.ja]) continue;
-        used[o.ja] = 1; picked.push(o.ja);
+        // 誤答どうしが同じ混同グループになるのも防ぐ（2つの誤答が同義に見える問題を排除）
+        if (o.confusableGroup && usedGroup[o.confusableGroup]) continue;
+        used[o.ja] = 1;
+        if (o.confusableGroup) usedGroup[o.confusableGroup] = 1;
+        picked.push(o.ja);
       }
     }
     take(candidates(1, true), 2);

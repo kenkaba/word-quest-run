@@ -1,12 +1,13 @@
 /* WORD QUEST RUN — Service Worker
    キャッシュのバージョンは Ver 更新のたびに上げる（古いキャッシュは activate で削除）。
    方針: network-first（オンラインは常に最新、オフラインはキャッシュにフォールバック）。 */
-var CACHE = 'wqr-v3.3.0';
+var CACHE = 'wqr-v3.4.0';
 var ASSETS = [
   './',
   './index.html',
   './vocab.js',
   './vocab-ext.js',
+  './vocab-quality.js',
   './vocab-engine.js',
   './lumi-rig.js',
   './game.js',

@@ -163,7 +163,8 @@
   .perfect{color:#9dffc0;font-weight:900;font-size:14px}
 
   /* 遊び方 */
-  #howto{background:rgba(6,4,16,.92);z-index:30}
+  #howto,#credits{background:rgba(6,4,16,.94);z-index:30}
+  #credits .panel{max-height:82vh;overflow-y:auto}
   #howto .panel{max-width:340px;width:100%;padding:26px;border-radius:26px;text-align:left;
     background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(16px)}
   #howto h3{margin:0 0 6px;font-size:19px}
@@ -250,11 +251,10 @@
     <div class="panel">
       <h3>クレジット</h3>
       <p class="sub">WORD QUEST RUN</p>
-      <p class="mini"><b>語彙データ</b><br>
-        WORD QUEST RUN オリジナル（<span id="crWords">—</span>語）<br>
-        著作権者: 浅井 / 本作のために新規作成した専有データ<br>
-        市販辞書・Web辞書・第三者データは不使用<br>
-        ライセンス継承（ShareAlike）義務なし</p>
+      <p class="mini"><b>語彙データ</b>（承認 <span id="crWords">—</span>語）<br>
+        WORD QUEST RUN独自制作語彙データ。<br>
+        第三者辞書・市販教材からの転載はありません。<br>
+        権利関係および公開ライセンスは正式公開前に確認予定です。</p>
       <p class="mini"><b>アート</b><br>キャラクター LUMI・背景・エフェクト: 本作オリジナル</p>
       <p class="mini"><b>音</b><br>効果音: WebAudio による合成音（本作生成）</p>
       <p class="mini" style="opacity:.7">外部データを採用した場合は、この画面に出典・ライセンス・帰属表示を追加します。</p>
@@ -282,6 +282,7 @@
 
 <script src="vocab.js"></script>
 <script src="vocab-ext.js"></script>
+<script src="vocab-quality.js"></script>
 <script src="vocab-engine.js"></script>
 <script src="lumi-rig.js"></script>
 <script src="game.js"></script>
