@@ -68,11 +68,6 @@
   @keyframes urg{50%{text-shadow:0 0 30px rgba(255,120,120,.9),0 4px 20px rgba(0,0,0,.6)}}
   #qword.ok{color:#c9ffd8;text-shadow:0 0 34px rgba(125,255,168,.75),0 4px 20px rgba(0,0,0,.6)}
   #qword.ng{color:#ffc3c3;text-shadow:0 0 34px rgba(255,106,106,.7),0 4px 20px rgba(0,0,0,.6)}
-  /* 残り時間: 文字の下の細い光の線 */
-  #qword::after{content:'';position:absolute;left:50%;bottom:-14px;transform:translateX(-50%) scaleX(var(--t,1));
-    width:132px;height:3px;border-radius:3px;transform-origin:center;
-    background:linear-gradient(90deg,rgba(255,215,106,0),#ffd76a,rgba(255,215,106,0));
-    transition:transform .1s linear}
 
   /* ── シネマ演出テキスト ── */
   #cine{position:absolute;top:44%;left:0;right:0;text-align:center;z-index:7;pointer-events:none;
@@ -84,8 +79,8 @@
 
   /* ── ヒント（世界観に馴染む小さな護符） ── */
   #hints{position:absolute;left:0;right:0;bottom:calc(12px + var(--sb));z-index:5;
-    display:flex;justify-content:center;gap:12px}
-  .hint{width:60px;height:60px;border-radius:20px;display:flex;flex-direction:column;
+    display:flex;justify-content:center;gap:9px}
+  .hint{width:56px;height:56px;border-radius:18px;display:flex;flex-direction:column;
     align-items:center;justify-content:center;gap:1px;cursor:pointer;position:relative;
     background:var(--glass);border:1px solid var(--line);
     backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
@@ -204,10 +199,12 @@
     <div id="hints">
       <div class="hint" id="hintScroll" role="button" aria-label="巻物: 誤った道を1本封鎖">
         <span class="ic">📜</span><span class="lb">巻物</span><span class="n" id="hintScrollN">3</span></div>
-      <div class="hint" id="hintSand" role="button" aria-label="時の砂: 時間の流れを遅くする">
+      <div class="hint" id="hintSand" role="button" aria-label="時の砂: 残り時間を40パーセント回復する">
         <span class="ic">⏳</span><span class="lb">時の砂</span><span class="n" id="hintSandN">3</span></div>
-      <div class="hint" id="hintEye" role="button" aria-label="魔法の目: 正しい道を光らせる">
-        <span class="ic">🔮</span><span class="lb">魔法の目</span><span class="n" id="hintEyeN">3</span></div>
+      <div class="hint" id="hintFreeze" role="button" aria-label="時間停止: 時間を1.6秒止める">
+        <span class="ic">❄️</span><span class="lb">時間停止</span><span class="n" id="hintFreezeN">2</span></div>
+      <div class="hint" id="hintEye" role="button" aria-label="未来視: 正しい道を一瞬光らせる">
+        <span class="ic">🔮</span><span class="lb">未来視</span><span class="n" id="hintEyeN">3</span></div>
     </div>
 
     <div id="liveRegion" class="sr" aria-live="polite"></div>
@@ -266,7 +263,8 @@
   </div>
 </div>
 
-<script src="words.js"></script>
+<script src="vocab.js"></script>
+<script src="vocab-engine.js"></script>
 <script src="lumi-rig.js"></script>
 <script src="game.js"></script>
 <script>

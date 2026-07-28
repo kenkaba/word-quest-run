@@ -17,7 +17,17 @@
 (function () {
   'use strict';
 
-  var WORDS = Array.isArray(window.WORDS) ? window.WORDS.slice() : [];
+  // 語彙は vocab.js（データ）+ vocab-engine.js（選択・重複防止・誤答生成）が担う。
+  // 旧 words.js しか無い環境でも動くよう、無ければ旧データから最小変換する。
+  var VOCAB = null;
+  (function initVocab() {
+    var raw = window.VOCAB_RAW;
+    if (!raw && Array.isArray(window.WORDS)) {
+      raw = window.WORDS.map(function (o) { return [o.w, o.a, 'n', o.d || 2, 'legacy', o.p || '', o.e || '', '']; });
+    }
+    if (raw && window.VocabEngine) VOCAB = window.VocabEngine.create(raw);
+  })();
+  var WORDS = VOCAB ? VOCAB.words : [];
 
   /* ── helpers ───────────────────────────────────────────────────────── */
   function $(s, r) { return (r || document).querySelector(s); }
@@ -172,6 +182,8 @@
   var W = 0, H = 0, DPR = 1, horizonY = 0, roadHalfBottom = 0;
   var DEPTH = 6.2;      // 遠近の強さ
   var OVERSCAN = 34;    // 画面揺れ時に端が欠けないための余白
+  // タブ/アプリが非表示のときタイマーを止める。テストから差し替えられるよう関数にする。
+  var isHidden = function () { return !!document.hidden; };
 
   var el = {};
   function cacheDom() {
@@ -184,8 +196,8 @@
       ovDist: $('#ovDist'), ovBest: $('#ovBest'), ovCombo: $('#ovCombo'),
       ovNew: $('#ovNew'), ovMissed: $('#ovMissed'), ovStage: $('#ovStage'),
       hintRow: $('#hints'),
-      hintScroll: $('#hintScroll'), hintSand: $('#hintSand'), hintEye: $('#hintEye'),
-      hintScrollN: $('#hintScrollN'), hintSandN: $('#hintSandN'), hintEyeN: $('#hintEyeN'),
+      hintScroll: $('#hintScroll'), hintSand: $('#hintSand'), hintFreeze: $('#hintFreeze'), hintEye: $('#hintEye'),
+      hintScrollN: $('#hintScrollN'), hintSandN: $('#hintSandN'), hintFreezeN: $('#hintFreezeN'), hintEyeN: $('#hintEyeN'),
       flash: $('#flash'), cine: $('#cine'), coach: $('#coach')
     };
   }
@@ -346,54 +358,66 @@
       shake: 0, timeScale: 1, slowT: 0,
       resolveT: 0, kind: '', move: '',
       missed: [], recent: [], correct: 0, answered: 0,
-      hints: { scroll: 3, sand: 3, eye: 3 }, sandT: 0,
+      hints: { scroll: 3, sand: 3, freeze: 2, eye: 3 }, sandT: 0, freezeT: 0,
       flashT: 0, flashColor: '', rainbow: 0, cineT: 0, cineText: '',
       boss: null, bossCleared: [], chest: null, chestIn: 7,
       banner: '', bannerT: 0, godRay: 0, stageIdx: 0, stageFlash: 0,
       trail: [], newBest: false, coachT: Store.seen() ? 0 : 4.5
     };
     P.length = 0;
+    if (VOCAB) VOCAB.startSession();   // 重複防止とセッション統計をリセット
     G.charX = W / 2;
     G.lagX = G.charX; G.camX = G.charX;   // 起動直後にカメラが飛ばないよう一致させる
     updateHints(); updateHud();
     nextQuestion();
   }
 
-  function timeForLevel(lv) { return clamp(3.6 - (lv - 1) * 0.17, 1.5, 3.6); }
+  /* ── 制限時間モデル ──────────────────────────────────────────────
+     単語の難易度を基準に、プレイヤーレベル・コンボ・正答率で調整する。
+     初心者が即死し続けず、上級者には緊張感が出るようにする。 */
+  var BASE_TIME = [0, 6.6, 5.6, 4.8, 4.2, 3.8, 3.4];   // Starter..Master
+  function timeForWord(wordLvl, playerLevel, accuracy, combo) {
+    var base = BASE_TIME[clamp(wordLvl || 2, 1, 6)];
+    base -= Math.min(1.2, Math.max(0, playerLevel - 1) * 0.09);   // 上達で短く
+    base -= Math.min(0.9, combo * 0.045);                          // 加速感
+    if (accuracy < 0.5) base += 1.2;                               // 苦戦者に猶予
+    else if (accuracy < 0.7) base += 0.5;
+    return clamp(base, 2.6, 8);
+  }
+  // 旧API互換（テストとボス時の短縮で使用）
+  function timeForLevel(lv) { return clamp(6.6 - (lv - 1) * 0.30, 2.6, 6.6); }
   function updateLevel() {
     var byDist = 1 + Math.floor(G.dist / 220);
     var acc = G.answered ? G.correct / G.answered : 1;
     G.level = clamp(byDist + (acc > 0.85 ? 1 : acc < 0.5 ? -1 : 0), 1, 14);
   }
-  function maxDifficulty() { return G.level <= 2 ? 1 : G.level <= 5 ? 2 : G.level <= 8 ? 3 : 4; }
-
-  function pickWord() {
-    var maxD = maxDifficulty();
-    var due = G.missed.filter(function (w) { return G.recent.indexOf(w.w) < 0; });
-    if (due.length && Math.random() < 0.4) return pick(due);
-    var pool = WORDS.filter(function (w) { return w.d <= maxD && G.recent.indexOf(w.w) < 0; });
-    if (!pool.length) pool = WORDS.filter(function (w) { return w.d <= maxD; });
-    if (!pool.length) pool = WORDS.slice();
-    var top = pool.filter(function (w) { return w.d >= maxD - 1; });
-    return pick(top.length ? top : pool);
+  function maxDifficulty() {
+    // Starter..Master の6段階へ段階的に開放する
+    return G.level <= 2 ? 1 : G.level <= 4 ? 2 : G.level <= 6 ? 3 : G.level <= 9 ? 4 : G.level <= 12 ? 5 : 6;
   }
+
+  // 出題選択・重複防止・誤答生成は vocab-engine.js が担う（pickWord は廃止）
 
   function nextQuestion() {
     G.phase = 'ask'; G.chosen = null; G.blocked = {};
     updateLevel();
-    var word = pickWord();
-    G.recent.push(word.w); if (G.recent.length > 6) G.recent.shift();
-    var wrongs = shuffle(word.x).slice(0, 2);
-    var choices = shuffle([word.a, wrongs[0], wrongs[1]]);
-    G.correctLane = choices.indexOf(word.a);
-    G.q = { word: word, choices: choices };
+
+    var q = VOCAB ? VOCAB.nextQuestion(maxDifficulty()) : null;
+    if (!q) return gameOver();
+    G.q = { word: q.word, choices: q.choices };
+    G.correctLane = q.correctLane;
     G.qCount++;
-    G.tQ = G.boss ? timeForLevel(G.level + 2) : timeForLevel(G.level);
+
+    var acc = G.answered ? G.correct / G.answered : 1;
+    G.tQ = timeForWord(q.word.lvl, G.level, acc, G.combo);
+    if (G.boss) G.tQ *= 0.82;                      // ボス戦は緊張感を上げる
     G.tLeft = G.tQ;
-    el.word.textContent = word.w;
+    G.askedAt = Date.now();
+    G.warn25 = false; G.warn10 = false;
+
+    el.word.textContent = q.word.w;
     el.word.className = 'qword show';
-    if (el.live) el.live.textContent = word.w + '。左:' + choices[0] + '、中央:' + choices[1] + '、右:' + choices[2];
-    // 宝箱の予約
+    if (el.live) el.live.textContent = q.word.w + '。左:' + q.choices[0] + '、中央:' + q.choices[1] + '、右:' + q.choices[2];
     if (!G.boss && G.chestIn-- <= 0) { G.chest = { lane: rnd(3), got: false }; G.chestIn = 6 + rnd(5); }
     else if (!G.boss) G.chest = null;
   }
@@ -409,7 +433,10 @@
   function resolve() {
     G.phase = 'resolve'; G.answered++;
     var ok = (G.chosen === G.correctLane);
+    var timedOut = (G.chosen == null);
     var st = stageFor(G.dist);
+    // 学習統計と分析指標へ記録
+    if (VOCAB && G.q) VOCAB.record(G.q.word, ok, Date.now() - (G.askedAt || Date.now()), timedOut);
     el.word.className = 'qword ' + (ok ? 'ok' : 'ng');
 
     if (ok) {
@@ -446,11 +473,12 @@
       G.resolveT = 0.6;
     } else {
       G.kind = 'bad';
-      G.move = FAILMOVES[G.qCount % FAILMOVES.length];
+      // 時間切れは専用の失敗演出（魔力が尽きて道が閉じる）
+      G.move = timedOut ? 'timeout' : FAILMOVES[G.qCount % FAILMOVES.length];
       G.combo = 0; G.speed = 1; G.shake = 0.8; G.lives--;
       Sfx.bad();
       addMissed(G.q.word);
-      G.banner = (G.chosen == null ? '時間切れ…' : FAIL_LABEL[G.move]) + '  正解: ' + G.q.word.a;
+      G.banner = (timedOut ? '魔力が尽きた…' : FAIL_LABEL[G.move]) + '  正解: ' + G.q.word.ja;
       G.bannerT = 1.3;
       G.flashT = 0.25; G.flashColor = '#ff5a6a';
       for (var i = 0; i < 18; i++) spawn('dust', G.charX + rf(-30, 30), H * 0.80, { vx: rf(-120, 120), vy: rf(-160, -40), g: 380, life: rf(0.4, 0.9), r: rf(3, 7), c: '#c9b8a8' });
@@ -494,9 +522,28 @@
     if (!wrong.length) return;
     G.blocked[pick(wrong)] = true; G.hints.scroll--; Sfx.chime(); updateHints();
   }
+  // 時の砂: 残り時間を40%回復（上限は満タン）
   function useSand() {
     if (!G || G.phase !== 'ask' || G.hints.sand <= 0) return;
-    G.sandT = 2.4; G.hints.sand--; Sfx.chime(); updateHints();
+    G.tLeft = Math.min(G.tQ, G.tLeft + G.tQ * 0.40);
+    G.warn25 = G.tLeft / G.tQ > 0.25 ? false : G.warn25;
+    G.warn10 = G.tLeft / G.tQ > 0.10 ? false : G.warn10;
+    G.hints.sand--; Sfx.chime(); updateHints();
+    var gm = gaugeGeom();
+    for (var i = 0; i < 14; i++) {
+      spawn('magic', W / 2 + rf(-gm.half, gm.half), gm.y,
+        { vx: rf(-30, 30), vy: rf(-70, -20), g: -20, life: rf(0.4, 0.8), r: rf(1.6, 3.4), c: '#FFD76A' });
+    }
+  }
+  // 時間停止: 1.6秒だけ完全停止
+  function useFreeze() {
+    if (!G || G.phase !== 'ask' || G.hints.freeze <= 0) return;
+    G.freezeT = 1.6; G.hints.freeze--; Sfx.tone(520, 0.4, 'sine', 0.12, 900); updateHints();
+    var gm2 = gaugeGeom();
+    for (var j = 0; j < 12; j++) {
+      spawn('magic', W / 2 + rf(-gm2.half, gm2.half), gm2.y,
+        { vx: rf(-18, 18), vy: rf(-26, -4), g: -8, life: rf(0.5, 1.0), r: rf(1.6, 3.2), c: '#8AD8FF' });
+    }
   }
   function useEye() {
     if (!G || G.phase !== 'ask' || G.hints.eye <= 0) return;
@@ -506,9 +553,11 @@
     if (!el.hintScrollN) return;
     el.hintScrollN.textContent = G.hints.scroll;
     el.hintSandN.textContent = G.hints.sand;
+    el.hintFreezeN.textContent = G.hints.freeze;
     el.hintEyeN.textContent = G.hints.eye;
     el.hintScroll.classList.toggle('off', G.hints.scroll <= 0);
     el.hintSand.classList.toggle('off', G.hints.sand <= 0);
+    el.hintFreeze.classList.toggle('off', G.hints.freeze <= 0);
     el.hintEye.classList.toggle('off', G.hints.eye <= 0);
   }
 
@@ -618,10 +667,22 @@
       spawn('line', rf(0, W), rf(horizonY, H), { vy: rf(500, 1000), life: 0.28, r: rf(20, 60), c: 'rgba(255,255,255,0.35)' });
     }
 
-    // 問題タイマー
+    // 問題タイマー（背景タブ・アプリ切替中は停止し、残り時間を保持）
     if (G.phase === 'ask') {
-      G.tLeft -= d * sand;
-      if (G.tLeft <= 0) { G.chosen = null; resolve(); }
+      if (!isHidden() && !(G.freezeT > 0)) {
+        G.tLeft -= d * sand;
+        var frac0 = G.tLeft / G.tQ;
+        if (!G.warn25 && frac0 <= 0.25) {          // 残り25%: 脈動・音・軽い振動
+          G.warn25 = true; Sfx.tone(660, 0.10, 'triangle', 0.10);
+          if (navigator.vibrate) { try { navigator.vibrate(18); } catch (e) {} }
+        }
+        if (!G.warn10 && frac0 <= 0.10) {          // 残り10%: 強い警告
+          G.warn10 = true; Sfx.tone(880, 0.16, 'square', 0.13, 520);
+          if (navigator.vibrate) { try { navigator.vibrate([26, 40, 26]); } catch (e) {} }
+        }
+      }
+      if (G.freezeT > 0) G.freezeT -= dt;
+      if (G.tLeft <= 0) { G.tLeft = 0; G.chosen = null; resolve(); }
     } else {
       G.resolveT -= d;
       if (G.resolveT <= 0) { G.phase = 'ask'; afterResolve(); }
@@ -681,6 +742,7 @@
     drawScenery(st);
     if (G.godRay > 0 || st.scen === 'tree') drawGodRays(st);
     if (G.boss) drawBoss(st);      // 答えより先に描く（選択肢を絶対に隠さない）
+    drawTimeGauge(st);
     drawAnswers(st);
     drawChest(st);
     drawTrail(st);
@@ -1000,6 +1062,76 @@
     var x = W / 2 + (i - 1) * slot;
     x = clamp(x, pw / 2 + 5, W - pw / 2 - 5);   // 画面外へ出さない
     return { x: x, pw: pw, ph: ph, fs: fs };
+  }
+
+  /* ── 時間ゲージ ────────────────────────────────────────────────────
+     問題の直下・3本の道の上に置き、視線を端へ動かさない。
+     四角いバーではなく「魔力の結晶列」。中央から外へ灯が消えていく。 */
+  var GAUGE_Y = 0.295;      // 画面高比（問題文と答えの板の間）
+  function gaugeGeom() {
+    return { y: H * GAUGE_Y, half: Math.min(W * 0.34, 160) };
+  }
+  function drawTimeGauge(st) {
+    if (!G.q || G.mode !== 'play') return;
+    var frac = clamp(G.tLeft / G.tQ, 0, 1);
+    var gm = gaugeGeom(), cy = gm.y, half = gm.half;
+    var N = 15;                                   // 結晶の数（奇数＝中央が残る）
+    var lit = frac;
+    var frozen = G.freezeT > 0;
+
+    // 色: 50%で変化、25%で警告、10%で強い警告
+    var col = st.edge, glowA = 0.5;
+    if (frac <= 0.10) { col = '#FF5A6A'; glowA = 0.95; }
+    else if (frac <= 0.25) { col = '#FF9A4A'; glowA = 0.8; }
+    else if (frac <= 0.50) { col = '#FFD76A'; glowA = 0.62; }
+    if (frozen) col = '#8AD8FF';
+
+    // 脈動（25%以下）
+    var pulse = 1;
+    if (frac <= 0.25 && !frozen) pulse = 1 + Math.sin(G.run * (frac <= 0.10 ? 7 : 4)) * (frac <= 0.10 ? 0.28 : 0.16);
+
+    // 中央の魔力核
+    Sprites.drawGlow(W / 2, cy, 34 * pulse, col, glowA * 0.55);
+
+    for (var i = 0; i < N; i++) {
+      var t01 = (i - (N - 1) / 2) / ((N - 1) / 2);        // -1..1（中央=0）
+      var x = W / 2 + t01 * half;
+      var dist01 = Math.abs(t01);                          // 中央からの距離
+      var on = dist01 <= lit;                              // 外側から消える
+      var h = (11 - dist01 * 3.4) * (on ? pulse : 1);
+      var w = 4.2 - dist01 * 1.0;
+      var yy = cy + Math.pow(dist01, 2) * 5;               // ゆるい弧
+
+      if (on) {
+        Sprites.drawGlow(x, yy, 13 * pulse, col, glowA * (1 - dist01 * 0.35));
+        ctx.fillStyle = col;
+      } else {
+        ctx.fillStyle = 'rgba(255,255,255,0.10)';
+      }
+      // 結晶（菱形）
+      ctx.beginPath();
+      ctx.moveTo(x, yy - h); ctx.lineTo(x + w, yy); ctx.lineTo(x, yy + h); ctx.lineTo(x - w, yy);
+      ctx.closePath(); ctx.fill();
+    }
+
+    // 消えた瞬間の粒子（魔力が散る）
+    if (G.lastLit == null) G.lastLit = lit;
+    if (lit < G.lastLit - (1 / N)) {
+      var ex = W / 2 + (Math.random() < 0.5 ? -1 : 1) * lit * half;
+      for (var p = 0; p < 3; p++) {
+        spawn('magic', ex, cy, { vx: rf(-40, 40), vy: rf(-50, -10), g: 60, life: rf(0.3, 0.6), r: rf(1.5, 3), c: col });
+      }
+      G.lastLit = lit;
+    }
+    if (lit > G.lastLit) G.lastLit = lit;   // 回復時
+
+    // 時間停止中の表示
+    if (frozen) {
+      ctx.font = '800 11px -apple-system,"Hiragino Sans",system-ui,sans-serif';
+      ctx.textAlign = 'center'; ctx.fillStyle = '#8AD8FF';
+      ctx.fillText('時間停止', W / 2, cy + 26);
+      ctx.textAlign = 'left';
+    }
   }
 
   function drawAnswers(st) {
@@ -1553,9 +1685,10 @@
     if (!G.missed.length) el.ovMissed.innerHTML = '<div class="perfect">ノーミス走破！</div>';
     else G.missed.slice(0, 14).forEach(function (w) {
       var d = document.createElement('div'); d.className = 'mw';
-      d.innerHTML = '<b>' + w.w + '</b><span>' + w.a + '</span>';
+      d.innerHTML = '<b>' + w.w + '</b><span>' + w.ja + '</span>';
       el.ovMissed.appendChild(d);
     });
+    if (VOCAB) VOCAB.persistReport();
     show('over');
   }
 
@@ -1609,6 +1742,7 @@
     });
     el.hintScroll.addEventListener('click', function (e) { e.stopPropagation(); useScroll(); });
     el.hintSand.addEventListener('click', function (e) { e.stopPropagation(); useSand(); });
+    el.hintFreeze.addEventListener('click', function (e) { e.stopPropagation(); useFreeze(); });
     el.hintEye.addEventListener('click', function (e) { e.stopPropagation(); useEye(); });
     $('#startBtn').addEventListener('click', startPlay);
     $('#retryBtn').addEventListener('click', startPlay);
@@ -1685,9 +1819,9 @@
     var ok = 0, ng = 0, log = [];
     function t(name, cond) { if (cond) { ok++; log.push('PASS ' + name); } else { ng++; log.push('FAIL ' + name); } }
 
-    t('WORDS loaded (>=60)', WORDS.length >= 60);
-    t('all words have 3 distractors', WORDS.every(function (w) { return w.x && w.x.length >= 3; }));
-    t('difficulty range 1..4', WORDS.every(function (w) { return w.d >= 1 && w.d <= 4; }));
+    t('vocabulary loaded (>=200)', WORDS.length >= 200);
+    t('every word can produce 2 POS-matched distractors', VOCAB.validate().noDistractor === 0);
+    t('difficulty range 1..6 (Starter..Master)', WORDS.every(function (w) { return w.lvl >= 1 && w.lvl <= 6; }));
 
     t('stage 0m', stageFor(0).name === '暁の浮遊遺跡');
     t('stage 300m', stageFor(300).name === '翡翠の魔法森');
@@ -1725,7 +1859,7 @@
       nextQuestion();
       var c = G.q.choices;
       if (c.length !== 3 || new Set(c).size !== 3) valid = false;
-      if (c[G.correctLane] !== G.q.word.a) valid = false;
+      if (c[G.correctLane] !== G.q.word.ja) valid = false;
       seen[G.correctLane]++;
     }
     t('choices unique & correct mapped (x200)', valid);
@@ -1752,7 +1886,7 @@
 
     // 答えの板は絶対に重ならない・画面外へ出ない（最長の日本語訳で検証）
     var longest = '', all = [];
-    WORDS.forEach(function (w) { all.push(w.a); w.x.forEach(function (v) { all.push(v); }); });
+    WORDS.forEach(function (w) { all.push(w.ja); });
     all.forEach(function (s) { if (s.length > longest.length) longest = s; });
     var overlapOK = true, insideOK = true;
     [[320, 700], [375, 812], [390, 844], [430, 932], [768, 1024]].forEach(function (vp) {
@@ -1814,6 +1948,96 @@
     ctx.restore();
     t('legs articulate: swing foot lifts above stance foot', swingLeg.fy < standLeg.fy - 3);
     t('stance leg registers ground contact', standLeg.planted && !swingLeg.planted);
+
+    /* ── 語彙システムの品質ゲート ─────────────────────────────── */
+    var V = VOCAB.validate();
+    t('vocab: no missing/duplicate/bad entries', V.issues.missing === 0 && V.issues.duplicate === 0 && V.issues.badPos === 0 && V.issues.badLevel === 0);
+    t('vocab: every word has an example + translation', V.missingExample === 0);
+    t('vocab: every word can produce distractors', V.noDistractor === 0);
+
+    // 100問連続で: 意図しない重複0 / 品詞不一致0 / 正解位置の偏り許容内
+    newGame();
+    var lanes = [0, 0, 0], dupes = 0, posBad = 0, seenIds = {}, jaToPos = {};
+    WORDS.forEach(function (w) { if (!(w.ja in jaToPos)) jaToPos[w.ja] = w.pos; });
+    for (var qi = 0; qi < 100; qi++) {
+      nextQuestion();
+      if (!G.q) break;
+      if (seenIds[G.q.word.id]) dupes++;
+      seenIds[G.q.word.id] = 1;
+      lanes[G.correctLane]++;
+      for (var ci = 0; ci < 3; ci++) {
+        if (ci === G.correctLane) continue;
+        var dp = jaToPos[G.q.choices[ci]];
+        if (dp && dp !== G.q.word.pos) posBad++;
+      }
+      if (G.q.choices[G.correctLane] !== G.q.word.ja) posBad++;
+    }
+    t('vocab: 100 questions with 0 unintended duplicates', dupes === 0);
+    t('vocab: 0 part-of-speech mismatched distractors', posBad === 0);
+    var laneMin = Math.min(lanes[0], lanes[1], lanes[2]), laneMax = Math.max(lanes[0], lanes[1], lanes[2]);
+    t('vocab: correct lane balanced (' + lanes.join('/') + ')', laneMax - laneMin <= 20);
+    t('vocab: unique words per run >= 100', Object.keys(seenIds).length >= 100);
+
+    /* ── 時間制限システム ─────────────────────────────────────── */
+    t('timer: easier words get more time', timeForWord(1, 1, 1, 0) > timeForWord(6, 1, 1, 0));
+    t('timer: Starter is 6-7s at base', timeForWord(1, 1, 1, 0) >= 6 && timeForWord(1, 1, 1, 0) <= 7);
+    t('timer: Master is 3-4s at base', timeForWord(6, 1, 1, 0) >= 3 && timeForWord(6, 1, 1, 0) <= 4);
+    t('timer: struggling players get more time', timeForWord(3, 5, 0.4, 0) > timeForWord(3, 5, 0.95, 0));
+    t('timer: combo tightens the clock', timeForWord(3, 5, 0.9, 20) < timeForWord(3, 5, 0.9, 0));
+    t('timer: never below 2.6s', timeForWord(6, 20, 1, 40) >= 2.6);
+
+    // 時の砂は40%回復し、満タンを超えない
+    newGame(); G.tLeft = G.tQ * 0.2; var before = G.tLeft; useSand();
+    t('item: sand restores ~40% of the gauge', G.tLeft > before && Math.abs(G.tLeft - (before + G.tQ * 0.4)) < 0.01);
+    newGame(); G.tLeft = G.tQ * 0.95; useSand();
+    t('item: sand never exceeds full', G.tLeft <= G.tQ + 0.001);
+    // 以降のタイマー検証は「表示中」を強制する（テスト実行時はペインが非表示のことがある）
+    var realHidden = isHidden;
+    isHidden = function () { return false; };
+
+    // 時間停止中はゲージが減らない
+    newGame(); useFreeze(); var t0 = G.tLeft;
+    for (var fz = 0; fz < 20; fz++) update(0.016);
+    t('item: freeze stops the clock', Math.abs(G.tLeft - t0) < 0.001 && G.freezeT > 0);
+    // 停止解除後は再び減る
+    G.freezeT = 0; var t1 = G.tLeft;
+    for (var fz2 = 0; fz2 < 20; fz2++) update(0.016);
+    t('timer: resumes after freeze ends', G.tLeft < t1);
+
+    // 通常時は時間が流れる
+    newGame(); var tv0 = G.tLeft;
+    for (var vv = 0; vv < 30; vv++) update(0.016);
+    t('timer: counts down while visible', G.tLeft < tv0);
+
+    // 背景タブ・アプリ切替中は停止し、残り時間を保持する
+    isHidden = function () { return true; };
+    newGame(); G.tLeft = G.tQ * 0.6; var th0 = G.tLeft;
+    for (var hh = 0; hh < 60; hh++) update(0.016);
+    t('timer: pauses while the tab is hidden', Math.abs(G.tLeft - th0) < 0.0001);
+    // 復帰したら保持した残り時間から再開する
+    isHidden = function () { return false; };
+    for (var hr = 0; hr < 10; hr++) update(0.016);
+    t('timer: resumes from the preserved remainder', G.tLeft < th0 && G.tLeft > th0 - 0.4);
+
+    // 時間切れは専用演出＋ライフ減
+    newGame(); var lv0 = G.lives; G.tLeft = 0.001;
+    update(0.05);
+    t('timer: running out triggers timeout failure', G.kind === 'bad' && G.move === 'timeout' && G.lives === lv0 - 1);
+
+    isHidden = realHidden;   // 本来の判定へ戻す
+
+    // ゲージが問題文と答えの板を隠さない
+    var gaugeOK = true;
+    [[320, 700], [375, 812], [390, 844], [430, 932]].forEach(function (vp) {
+      var sw = W, sh = H;
+      W = vp[0]; H = vp[1]; roadHalfBottom = W * 0.60; horizonY = H * 0.46;
+      var gg = gaugeGeom();
+      if (gg.y <= H * 0.19 + 40) gaugeOK = false;              // 問題文と重ならない
+      if (gg.y + 16 >= H * ANSWER_Y - 23) gaugeOK = false;      // 答えの板と重ならない
+      if (gg.half * 2 > W - 20) gaugeOK = false;                // 画面外へ出ない
+      W = sw; H = sh; roadHalfBottom = W * 0.60; horizonY = H * 0.46;
+    });
+    t('gauge: never overlaps the word or the answer plates (4 viewports)', gaugeOK);
 
     // 神回避スロー
     newGame(); G.tLeft = G.tQ * 0.05; G.chosen = G.correctLane; resolve();
