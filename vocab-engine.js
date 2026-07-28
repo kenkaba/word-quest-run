@@ -26,7 +26,9 @@
     var POS_OK = { n: 1, v: 1, adj: 1, adv: 1 };
     for (var i = 0; i < raw.length; i++) {
       var e = raw[i];
-      if (!e || e.length < 6 || !e[0] || !e[1] || !e[2]) { issues.missing++; continue; }
+      // 必須は [英単語, 訳, 品詞, 難易度, カテゴリ] の5項目。
+      // 発音・例文・例文訳は任意（段階的に拡充するため）。
+      if (!e || e.length < 5 || !e[0] || !e[1] || !e[2] || !e[4]) { issues.missing++; continue; }
       var key = String(e[0]).toLowerCase();
       if (seen[key]) { issues.duplicate++; continue; }
       if (!POS_OK[e[2]]) { issues.badPos++; continue; }
@@ -266,14 +268,19 @@
     return list.slice(0, limit || 12);
   };
 
-  /* 起動時の品質検証（品質ゲート） */
-  Engine.prototype.validate = function () {
-    var self = this, r = { total: this.words.length, issues: this.issues, posMismatch: 0, noDistractor: 0, missingExample: 0 };
-    this.words.forEach(function (w) {
-      var d = self.makeDistractors(w);
-      if (d.length < 2) r.noDistractor++;
+  /* 品質検証。
+     sample を指定すると等間隔に間引いて検査する（ゲーム内テストの実行時間を抑えるため）。
+     全数検査は tools/validate-vocab.js が行う。 */
+  Engine.prototype.validate = function (sample) {
+    var self = this, n = this.words.length;
+    var r = { total: n, issues: this.issues, posMismatch: 0, noDistractor: 0, missingExample: 0, checked: 0 };
+    var step = (sample && sample < n) ? Math.floor(n / sample) : 1;
+    for (var i = 0; i < n; i += step) {
+      var w = this.words[i];
+      r.checked++;
+      if (self.makeDistractors(w).length < 2) r.noDistractor++;
       if (!w.ex || !w.exJa) r.missingExample++;
-    });
+    }
     return r;
   };
 

@@ -1,10 +1,11 @@
 /* ==========================================================================
    WORD QUEST RUN — 語彙データ（コア）
 
-   ライセンス方針:
-   このファイルの語彙・訳・例文は **すべて自作（originally authored for this project）**。
-   市販辞書・権利不明のデータは一切含まない。CC0 相当として本プロジェクトで自由に利用する。
-   外部データを取り込む場合は tools/vocab-import.md の手順とライセンス記録に従うこと。
+   ライセンス:
+   著作権者は浅井。本プロジェクトのために新規作成した専有データ（All rights reserved）。
+   自作データは自動的にCC0にはならないため、CC0相当とは表記しない。
+   市販辞書・Web辞書・権利不明のデータは一切含まない。ShareAlike 義務なし。
+   詳細と台帳は docs/VOCAB_LICENSES.md（DS-001）を正とする。
 
    圧縮形式（モバイルの転送量を抑えるため配列で持つ）:
    [ 0:英単語, 1:日本語訳, 2:品詞, 3:難易度, 4:カテゴリ, 5:発音, 6:例文, 7:例文訳 ]
@@ -18,9 +19,17 @@
    ========================================================================== */
 window.VOCAB_META = {
   version: '1.0.0',
-  license: 'Self-authored for WORD QUEST RUN. No third-party dictionary data.',
+  license: 'Proprietary (All rights reserved). Authored for WORD QUEST RUN.',
+  copyright: '浅井 / WORD QUEST RUN',
+  shareAlike: false,
+  attributionRequired: false,
+  ledger: 'docs/VOCAB_LICENSES.md#DS-001',
   sources: [
-    { name: 'WORD QUEST RUN original', license: 'Project-owned (CC0-equivalent)', words: 'all' }
+    { id: 'DS-001', name: 'WORD QUEST RUN original vocabulary',
+      copyrightHolder: '浅井', origin: 'newly authored for this project',
+      license: 'Proprietary (All rights reserved)', acquiredOn: '2026-07-28/29',
+      modifications: 'none (original work)', attribution: 'not required',
+      shareAlike: false, inAppNotice: 'credits screen only', words: 'all' }
   ],
   fields: ['w', 'ja', 'pos', 'lvl', 'cat', 'ipa', 'ex', 'exJa']
 };
@@ -128,7 +137,7 @@ window.VOCAB_RAW = [
 ["day","日","n",1,"time","/deɪ/","It was a long day.","長い一日だった。"],
 ["week","週","n",1,"time","/wiːk/","See you next week.","また来週。"],
 ["year","年","n",1,"time","/jɪər/","She moved last year.","彼女は昨年引っ越した。"],
-["hour","時間","n",2,"time","/aʊər/","We waited an hour.","1時間待った。"],
+["hour","1時間","n",2,"time","/aʊər/","We waited an hour.","1時間待った。"],
 ["season","季節","n",2,"time","/ˈsiː.zən/","Spring is my favorite season.","春が一番好きな季節だ。"],
 ["future","未来","n",2,"time","/ˈfjuː.tʃər/","We can change the future.","未来は変えられる。"],
 ["past","過去","n",3,"time","/pɑːst/","Do not dwell on the past.","過去にとらわれるな。"],
@@ -149,7 +158,7 @@ window.VOCAB_RAW = [
 ["purpose","目的","n",3,"idea","/ˈpɜː.pəs/","What is the purpose?","目的は何ですか。"],
 ["influence","影響","n",3,"idea","/ˈɪn.flu.əns/","Music has a strong influence on me.","音楽は私に強い影響を与える。"],
 ["evidence","証拠","n",4,"idea","/ˈev.ɪ.dəns/","There is no evidence.","証拠がない。"],
-["consequence","結果","n",4,"idea","/ˈkɒn.sɪ.kwəns/","Think about the consequence.","結果を考えなさい。"],
+["consequence","招いた結末","n",4,"idea","/ˈkɒn.sɪ.kwəns/","Think about the consequence.","結果を考えなさい。"],
 ["assumption","前提","n",5,"idea","/əˈsʌmp.ʃən/","That assumption was wrong.","その前提は誤りだった。"],
 ["perspective","観点","n",5,"idea","/pəˈspek.tɪv/","Try another perspective.","別の観点で見てごらん。"],
 ["principle","原則","n",5,"idea","/ˈprɪn.sɪ.pəl/","He never breaks that principle.","彼はその原則を決して破らない。"],
@@ -200,7 +209,7 @@ window.VOCAB_RAW = [
 ["believe","信じる","v",2,"mind","/bɪˈliːv/","I believe you.","あなたを信じる。"],
 ["imagine","想像する","v",3,"mind","/ɪˈmædʒ.ɪn/","Imagine a quiet forest.","静かな森を想像して。"],
 ["decide","決める","v",2,"mind","/dɪˈsaɪd/","We decided to wait.","待つことに決めた。"],
-["realize","気づく","v",3,"mind","/ˈrɪə.laɪz/","He realized his error.","彼は誤りに気づいた。"],
+["realize","はっと悟る","v",3,"mind","/ˈrɪə.laɪz/","He realized his error.","彼は誤りに気づいた。"],
 ["recognize","見分ける","v",3,"mind","/ˈrek.əɡ.naɪz/","I didn't recognize him.","彼だと分からなかった。"],
 ["consider","検討する","v",4,"mind","/kənˈsɪd.ər/","Consider every option.","すべての選択肢を検討して。"],
 ["assume","仮定する","v",5,"mind","/əˈsjuːm/","Do not assume too much.","決めつけすぎないで。"],
@@ -230,7 +239,7 @@ window.VOCAB_RAW = [
 ["replace","取り替える","v",3,"action","/rɪˈpleɪs/","Replace the old part.","古い部品を交換して。"],
 ["overcome","克服する","v",4,"action","/ˌəʊ.vəˈkʌm/","We must overcome our fears.","恐れを克服しなければ。"],
 ["abandon","見捨てる","v",4,"action","/əˈbæn.dən/","Never abandon your friends.","友を見捨てるな。"],
-["eliminate","取り除く","v",4,"action","/ɪˈlɪm.ɪ.neɪt/","We need to eliminate the errors.","誤りを取り除く必要がある。"],
+["eliminate","撲滅する","v",4,"action","/ɪˈlɪm.ɪ.neɪt/","We need to eliminate the errors.","誤りを取り除く必要がある。"],
 ["expand","拡大する","v",4,"action","/ɪkˈspænd/","The company plans to expand.","会社は拡大を計画している。"],
 ["scrutinize","綿密に調べる","v",6,"action","/ˈskruː.tɪ.naɪz/","The lawyer scrutinized the contract.","弁護士は契約書を綿密に調べた。"],
 ["diminish","減少する","v",6,"action","/dɪˈmɪn.ɪʃ/","The pain will diminish soon.","痛みはすぐ和らぐ。"],
@@ -245,7 +254,7 @@ window.VOCAB_RAW = [
 ["deep","深い","adj",2,"size","/diːp/","The lake is deep.","その湖は深い。"],
 ["thick","厚い","adj",3,"size","/θɪk/","He wore a thick coat.","彼は厚いコートを着ていた。"],
 ["thin","薄い","adj",3,"size","/θɪn/","The ice is thin.","氷が薄い。"],
-["enormous","巨大な","adj",4,"size","/ɪˈnɔː.məs/","An enormous rock blocked the road.","巨大な岩が道を塞いだ。"],
+["enormous","並外れて大きい","adj",4,"size","/ɪˈnɔː.məs/","An enormous rock blocked the road.","巨大な岩が道を塞いだ。"],
 
 /* ── 形容詞: 性質 ─────────────────────────────────────── */
 ["good","良い","adj",1,"quality","/ɡʊd/","This is a good plan.","これは良い計画だ。"],
@@ -265,7 +274,7 @@ window.VOCAB_RAW = [
 ["obvious","明らかな","adj",3,"quality","/ˈɒb.vi.əs/","The answer is obvious.","答えは明らかだ。"],
 ["essential","不可欠な","adj",4,"quality","/ɪˈsen.ʃəl/","Water is essential for life.","水は生命に不可欠だ。"],
 ["reliable","信頼できる","adj",4,"quality","/rɪˈlaɪ.ə.bəl/","She is a reliable partner.","彼女は信頼できる仲間だ。"],
-["sufficient","十分な","adj",4,"quality","/səˈfɪʃ.ənt/","We have sufficient food.","食料は十分ある。"],
+["sufficient","事足りる","adj",4,"quality","/səˈfɪʃ.ənt/","We have sufficient food.","食料は十分ある。"],
 ["ambiguous","曖昧な","adj",5,"quality","/æmˈbɪɡ.ju.əs/","The message was ambiguous.","その伝言は曖昧だった。"],
 ["inevitable","避けられない","adj",5,"quality","/ɪnˈev.ɪ.tə.bəl/","Change is inevitable.","変化は避けられない。"],
 ["arbitrary","恣意的な","adj",6,"quality","/ˈɑː.bɪ.trə.ri/","The rule seems arbitrary.","その規則は恣意的に見える。"],

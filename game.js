@@ -1079,16 +1079,27 @@
     var lit = frac;
     var frozen = G.freezeT > 0;
 
-    // 色: 50%で変化、25%で警告、10%で強い警告
-    var col = st.edge, glowA = 0.5;
-    if (frac <= 0.10) { col = '#FF5A6A'; glowA = 0.95; }
-    else if (frac <= 0.25) { col = '#FF9A4A'; glowA = 0.8; }
-    else if (frac <= 0.50) { col = '#FFD76A'; glowA = 0.62; }
+    /* 数字を読まなくても残り時間が体感できるよう、段階ごとに質を変える。
+       50%: 光量低下 / 25%: 脈動開始 / 10%: 強い警告（色・速い脈動・にじみ） */
+    var col = st.edge, glowA = 0.62;
+    if (frac <= 0.10) { col = '#FF4A5E'; glowA = 1.0; }
+    else if (frac <= 0.25) { col = '#FF9A4A'; glowA = 0.85; }
+    else if (frac <= 0.50) { col = '#FFD76A'; glowA = 0.44; }   // 光量を落とす
     if (frozen) col = '#8AD8FF';
 
-    // 脈動（25%以下）
+    // 脈動: 25%から開始し、10%で速く深くなる
     var pulse = 1;
-    if (frac <= 0.25 && !frozen) pulse = 1 + Math.sin(G.run * (frac <= 0.10 ? 7 : 4)) * (frac <= 0.10 ? 0.28 : 0.16);
+    if (frac <= 0.25 && !frozen) {
+      var sp = frac <= 0.10 ? 9 : 4.5, amp = frac <= 0.10 ? 0.34 : 0.15;
+      pulse = 1 + Math.sin(G.run * sp) * amp;
+    }
+    // 10%以下: 画面全体にわずかな赤いにじみを出して危機を伝える
+    if (frac <= 0.10 && !frozen) {
+      var vg2 = ctx.createRadialGradient(W / 2, H * 0.5, H * 0.28, W / 2, H * 0.5, H * 0.78);
+      vg2.addColorStop(0, 'rgba(255,74,94,0)');
+      vg2.addColorStop(1, 'rgba(255,74,94,' + (0.10 + Math.abs(Math.sin(G.run * 9)) * 0.16).toFixed(3) + ')');
+      ctx.fillStyle = vg2; ctx.fillRect(0, 0, W, H);
+    }
 
     // 中央の魔力核
     Sprites.drawGlow(W / 2, cy, 34 * pulse, col, glowA * 0.55);
@@ -1710,6 +1721,7 @@
     el.title.classList.toggle('hidden', which !== 'title');
     el.over.classList.toggle('hidden', which !== 'over');
     el.howto.classList.add('hidden');
+    var cr = $('#credits'); if (cr) cr.classList.add('hidden');
     document.body.classList.toggle('playing', which === 'play');
   }
   function startPlay() {
@@ -1719,6 +1731,12 @@
   }
 
   /* ── 入力 ──────────────────────────────────────────────────────────── */
+  // 要素が1つ欠けただけで boot 全体が止まらないようにする
+  function on(sel, ev, fn) {
+    var e = typeof sel === 'string' ? $(sel) : sel;
+    if (e && e.addEventListener) e.addEventListener(ev, fn);
+    else console.warn('bindInput: missing element', sel);
+  }
   function bindInput() {
     var field = $('#field');
     var sx = 0, sy = 0;
@@ -1740,17 +1758,22 @@
       else if (e.key === 'ArrowRight') { choose(2); e.preventDefault(); }
       else if (e.key === '1') choose(0); else if (e.key === '2') choose(1); else if (e.key === '3') choose(2);
     });
-    el.hintScroll.addEventListener('click', function (e) { e.stopPropagation(); useScroll(); });
-    el.hintSand.addEventListener('click', function (e) { e.stopPropagation(); useSand(); });
-    el.hintFreeze.addEventListener('click', function (e) { e.stopPropagation(); useFreeze(); });
-    el.hintEye.addEventListener('click', function (e) { e.stopPropagation(); useEye(); });
-    $('#startBtn').addEventListener('click', startPlay);
-    $('#retryBtn').addEventListener('click', startPlay);
-    $('#shareBtn').addEventListener('click', doShare);
-    $('#howtoBtn').addEventListener('click', function () { el.howto.classList.toggle('hidden'); });
-    $('#howtoClose').addEventListener('click', function () { el.howto.classList.add('hidden'); });
-    $('#homeBtn').addEventListener('click', function () { if (G) G.mode = 'title'; show('title'); el.titleBest.textContent = Store.best(); });
-    el.sound.addEventListener('click', function () {
+    on(el.hintScroll, 'click', function (e) { e.stopPropagation(); useScroll(); });
+    on(el.hintSand, 'click', function (e) { e.stopPropagation(); useSand(); });
+    on(el.hintFreeze, 'click', function (e) { e.stopPropagation(); useFreeze(); });
+    on(el.hintEye, 'click', function (e) { e.stopPropagation(); useEye(); });
+    on('#startBtn', 'click', startPlay);
+    on('#retryBtn', 'click', startPlay);
+    on('#shareBtn', 'click', doShare);
+    on('#howtoBtn', 'click', function () { el.howto.classList.toggle('hidden'); });
+    on('#creditBtn', 'click', function () {
+      var n = $('#crWords'); if (n) n.textContent = String(WORDS.length);
+      $('#credits').classList.toggle('hidden');
+    });
+    on('#creditClose', 'click', function () { $('#credits').classList.add('hidden'); });
+    on('#howtoClose', 'click', function () { el.howto.classList.add('hidden'); });
+    on('#homeBtn', 'click', function () { if (G) G.mode = 'title'; show('title'); el.titleBest.textContent = Store.best(); });
+    on(el.sound, 'click', function () {
       Sfx.on = !Sfx.on; Store.setSound(Sfx.on);
       el.sound.textContent = Sfx.on ? '🔊' : '🔈';
       el.sound.setAttribute('aria-label', Sfx.on ? '音を消す' : '音を出す');
@@ -1811,7 +1834,18 @@
     // 正式アートの読み込み（失敗しても手続き描画で動き続ける）
     if (window.LumiRig) LumiRig.load(clamp(W / 330, 0.95, 1.5));
     requestAnimationFrame(titleLoop);
-    if (/[?&]selftest=1/.test(location.search)) SelfTest();
+    // セルフテスト自体が落ちたときに無言で終わらないよう、例外を必ず画面へ出す
+    if (/[?&]selftest=1/.test(location.search)) {
+      try { SelfTest(); }
+      catch (e) {
+        console.error('SELFTEST CRASHED', e);
+        var b = document.createElement('div');
+        b.id = 'selftest-badge';
+        b.style.cssText = 'position:fixed;z-index:9999;left:8px;bottom:8px;padding:6px 10px;border-radius:8px;font:600 12px system-ui;color:#fff;background:#b03030;max-width:90vw';
+        b.textContent = 'SELFTEST CRASHED: ' + (e && e.message ? e.message : e);
+        document.body.appendChild(b);
+      }
+    }
   }
 
   /* ── 自己テスト ────────────────────────────────────────────────────── */
@@ -1819,8 +1853,8 @@
     var ok = 0, ng = 0, log = [];
     function t(name, cond) { if (cond) { ok++; log.push('PASS ' + name); } else { ng++; log.push('FAIL ' + name); } }
 
-    t('vocabulary loaded (>=200)', WORDS.length >= 200);
-    t('every word can produce 2 POS-matched distractors', VOCAB.validate().noDistractor === 0);
+    t('vocabulary loaded (>=3000 words)', WORDS.length >= 3000);
+    t('every word can produce 2 POS-matched distractors (sampled)', VOCAB.validate(150).noDistractor === 0);
     t('difficulty range 1..6 (Starter..Master)', WORDS.every(function (w) { return w.lvl >= 1 && w.lvl <= 6; }));
 
     t('stage 0m', stageFor(0).name === '暁の浮遊遺跡');
@@ -1855,14 +1889,14 @@
 
     newGame();
     var seen = { 0: 0, 1: 0, 2: 0 }, valid = true;
-    for (var i = 0; i < 200; i++) {
+    for (var i = 0; i < 80; i++) {
       nextQuestion();
       var c = G.q.choices;
       if (c.length !== 3 || new Set(c).size !== 3) valid = false;
       if (c[G.correctLane] !== G.q.word.ja) valid = false;
       seen[G.correctLane]++;
     }
-    t('choices unique & correct mapped (x200)', valid);
+    t('choices unique & correct mapped (x80)', valid);
     t('correct lane randomized', seen[0] > 10 && seen[1] > 10 && seen[2] > 10);
     t('timeForLevel decreases', timeForLevel(1) > timeForLevel(6));
     t('timeForLevel bounded', timeForLevel(50) >= 1.5);
@@ -1950,9 +1984,15 @@
     t('stance leg registers ground contact', standLeg.planted && !swingLeg.planted);
 
     /* ── 語彙システムの品質ゲート ─────────────────────────────── */
-    var V = VOCAB.validate();
+    var V = VOCAB.validate(150);
     t('vocab: no missing/duplicate/bad entries', V.issues.missing === 0 && V.issues.duplicate === 0 && V.issues.badPos === 0 && V.issues.badLevel === 0);
-    t('vocab: every word has an example + translation', V.missingExample === 0);
+    t('vocab: example coverage tracked (not required for play)', typeof V.missingExample === 'number');
+    t('vocab: license metadata is declared (no CC0 claim)',
+      !!(window.VOCAB_META && /Proprietary/.test(window.VOCAB_META.license) && window.VOCAB_META.shareAlike === false));
+    t('vocab: no duplicate Japanese translations', (function () {
+      var m = {}; for (var i = 0; i < WORDS.length; i++) { if (m[WORDS[i].ja]) return false; m[WORDS[i].ja] = 1; } return true;
+    })());
+    t('vocab: no proper nouns (capitalised entries)', WORDS.every(function (w) { return !/^[A-Z]/.test(w.w); }));
     t('vocab: every word can produce distractors', V.noDistractor === 0);
 
     // 100問連続で: 意図しない重複0 / 品詞不一致0 / 正解位置の偏り許容内

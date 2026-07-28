@@ -218,7 +218,7 @@
     <p class="tag">幻想世界を駆け抜けろ。<br>意味に合う<b>道</b>を選んで、どこまでも遠くへ。</p>
     <div class="best glass"><small>BEST</small><b id="titleBest">0</b><i>m</i></div>
     <button class="btn" id="startBtn">冒険をはじめる</button>
-    <div class="row"><button class="btn2" id="howtoBtn">遊び方</button></div>
+    <div class="row"><button class="btn2" id="howtoBtn">遊び方</button><button class="btn2" id="creditBtn">クレジット</button></div>
     <p class="note">道を<b>タップ</b>（左・中央・右）／<b>スワイプ</b>（← ↑ →）<br>
       PCは <span class="kbd">←</span> <span class="kbd">↑</span> <span class="kbd">→</span></p>
   </div>
@@ -245,6 +245,23 @@
     </div>
   </div>
 
+  <!-- クレジット（ライセンス帰属表示） -->
+  <div id="credits" class="ov hidden">
+    <div class="panel">
+      <h3>クレジット</h3>
+      <p class="sub">WORD QUEST RUN</p>
+      <p class="mini"><b>語彙データ</b><br>
+        WORD QUEST RUN オリジナル（<span id="crWords">—</span>語）<br>
+        著作権者: 浅井 / 本作のために新規作成した専有データ<br>
+        市販辞書・Web辞書・第三者データは不使用<br>
+        ライセンス継承（ShareAlike）義務なし</p>
+      <p class="mini"><b>アート</b><br>キャラクター LUMI・背景・エフェクト: 本作オリジナル</p>
+      <p class="mini"><b>音</b><br>効果音: WebAudio による合成音（本作生成）</p>
+      <p class="mini" style="opacity:.7">外部データを採用した場合は、この画面に出典・ライセンス・帰属表示を追加します。</p>
+      <button class="btn" id="creditClose" style="width:100%">とじる</button>
+    </div>
+  </div>
+
   <!-- 遊び方 -->
   <div id="howto" class="ov hidden">
     <div class="panel">
@@ -264,6 +281,7 @@
 </div>
 
 <script src="vocab.js"></script>
+<script src="vocab-ext.js"></script>
 <script src="vocab-engine.js"></script>
 <script src="lumi-rig.js"></script>
 <script src="game.js"></script>
