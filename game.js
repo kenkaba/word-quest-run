@@ -400,6 +400,10 @@
 
   function nextQuestion() {
     G.phase = 'ask'; G.chosen = null; G.blocked = {};
+    /* 出題のたび中央レーンへ戻す。
+       前問で選んだレーンに留まると、主人公が画面端へ寄って構図が崩れ、
+       「毎問おなじ位置から道を選ぶ」という操作のリズムも失われる。 */
+    G.charLane = 1;
     updateLevel();
 
     var q = VOCAB ? VOCAB.nextQuestion(maxDifficulty()) : null;
@@ -717,7 +721,11 @@
   }
 
   // 足元を画面下へ沈めない（character-motion-camera-director の規則: 68〜75%）
-  function charY() { return H * 0.72 + G.bob + (G.camDip || 0); }
+  // タイトル/結果のデモ中は、UIに隠れない位置へ寄せて主人公を見せる
+  function charY() {
+    var base = (G && G.mode === 'demo') ? H * 0.88 : H * 0.72;
+    return base + G.bob + (G.camDip || 0);
+  }
 
   /* ── 描画 ──────────────────────────────────────────────────────────── */
   function render() {
@@ -1335,6 +1343,7 @@
     }
     y += fallY;
     var scale = clamp(W / 330, 0.95, 1.5);   // 主人公の存在感を確保
+    if (G.mode === 'demo') scale *= 1.55;     // タイトルでは主役として大きく見せる
 
     // ── 正式アセット（assets/lumi.svg）が読めていればリグで描く。
     //    未読込・失敗時は下の手続き描画へフォールバックし、ゲームは止めない。
@@ -1481,8 +1490,17 @@
     ctx.beginPath(); ctx.ellipse(-3.5, -33, 5, 3.4, -0.5, 0, 7); ctx.fill();
     ctx.globalAlpha = 1;
 
-    // ── とんがり帽子（揺れる）
+    // ── とんがり帽子（揺れる / 失敗時は跳ね上がって遅れて落ちる）
     var hatSway = Math.sin(t * 0.9 + 0.6) * 5.5;
+    var hatPop = 0, hatSpin = 0;
+    if (G.kind === 'bad' && G.phase === 'resolve') {
+      var hp = 1 - clamp(G.resolveT / 0.95, 0, 1);          // 0→1
+      hatPop = Math.sin(hp * Math.PI) * 26;                  // 浮いて落ちる
+      hatSpin = hp * 1.5;                                    // くるりと回る
+    }
+    ctx.save();
+    ctx.translate(0, -hatPop);
+    ctx.rotate(hatSpin);
     var hatG = ctx.createLinearGradient(0, -66, 0, -34);
     hatG.addColorStop(0, '#6f4bb0'); hatG.addColorStop(1, '#3f2670');
     ctx.fillStyle = hatG;
@@ -1503,6 +1521,8 @@
     // 先端の星
     ctx.fillStyle = '#ffe9a8';
     ctx.beginPath(); ctx.arc(hatSway, -73, 2.8, 0, 7); ctx.fill();
+
+    ctx.restore();   // 帽子の跳ね上げ
 
     // ── 杖（右手・光る先端）
     ctx.strokeStyle = '#8a5a3a'; ctx.lineWidth = 3.2; ctx.lineCap = 'round';
@@ -1801,6 +1821,7 @@
     G.bob = Math.sin(G.run * 2) * 3.2;
     G.bendT += d * 0.3;
     G.bend = Math.sin(G.bendT) * 0.55 + Math.sin(G.bendT * 0.47 + 1.3) * 0.35;
+    // デモでは中央のUIを避けて右寄りに立たせる
     G.charX = lerp(G.charX, laneX(1, 0.05), clamp(d * 4, 0, 1));
     G.trail.push({ x: G.charX, y: charY(), a: 1 });
     if (G.trail.length > 8) G.trail.shift();
