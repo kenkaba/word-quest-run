@@ -1,0 +1,11 @@
+{
+  "name": "word-quest-run",
+  "version": "3.0.0",
+  "private": true,
+  "description": "A dependency-free mobile English-word running adventure",
+  "scripts": {
+    "test": "node verify.mjs",
+    "serve": "python3 -m http.server 8000"
+  }
+}
+
