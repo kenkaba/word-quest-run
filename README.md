@@ -50,7 +50,8 @@
 ## ローカルで遊ぶ / テスト
 
 ```bash
-python3 -m http.server 8000
+npm test
+npm run serve
 ```
 
 - 通常プレイ： <http://localhost:8000>
@@ -58,4 +59,4 @@ python3 -m http.server 8000
 
 ## デプロイ
 
-静的ファイルのみ。Netlify などにこのフォルダをそのまま公開できます。Service Worker のキャッシュ名（`sw.js` の `CACHE`）は Ver 更新のたびに上げてください（古いキャッシュは自動削除されます）。
+静的ファイルのみ。`ver2.0` ブランチへの反映後、Netlifyがリポジトリ直下をそのまま公開します。公開後は `index.html` の `wqr-build` が新しい値になったことを確認します。Service Worker のキャッシュ名（`sw.js` の `CACHE`）はユーザー向け更新のたびに上げてください（古いキャッシュは自動削除されます）。
