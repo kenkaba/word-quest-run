@@ -8,9 +8,12 @@ WORD QUEST RUN is visual-first. The player should be overwhelmed by a beautiful,
 ## Approved hero direction
 - Hero: Lumi, approximately high-school age (16–18 impression), cheerful apprentice witch.
 - Readable from behind at small mobile size.
-- Silver/lavender hair, deep navy witch silhouette, warm gold trim, crystal-tipped staff.
+- Silver/lavender hair, deep navy witch silhouette, warm antique-gold trim, violet crystal-tipped staff.
 - Black cat companion remains a recurring visual companion.
 - Avoid childlike/chibi proportions during gameplay. Promotional art may be more expressive, but gameplay silhouette must feel like a teenage fantasy heroine.
+
+### Active art pass
+The current `assets/lumi.svg` is the active premium gameplay pass. It keeps the existing rig symbol IDs and replaces the older warm/blonde prototype with the approved silver-lilac / midnight-navy / antique-gold / violet-crystal language. Do not revert it unless the rendered result proves weaker.
 
 ## Approved visual target
 The approved concept board is the target mood: premium anime-fantasy mobile game, large luminous skies, dramatic atmospheric depth, painterly environment layers, warm gold + midnight/navy UI language, magical particles and cinematic movement.
