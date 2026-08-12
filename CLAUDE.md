@@ -19,6 +19,9 @@ Only work on P0 until it is visually coherent:
 The vertical eye corridor is:
 `WORD -> TIME -> THREE PATHS -> LUMI`
 
+## Active Lumi asset
+`assets/lumi.svg` has already been upgraded to the active premium direction. It preserves the existing rig symbol IDs but now uses silver/lilac hair, deep navy costume masses, antique-gold trim and violet crystal magic. Do not revert it to the old blonde/purple prototype. Judge it in actual rendered motion and improve only if the screenshots/video still look weak.
+
 ## Non-negotiables
 - Lumi runs away from camera, never toward it.
 - Lumi should read as a 16–18-year-old anime-fantasy heroine, not chibi/childlike.
